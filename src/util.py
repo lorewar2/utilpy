@@ -56,17 +56,17 @@ def find_which_parent_contain_kstring(k_string_vec, tabex_loc, intermediate_loc,
             # check 4 parents for the alt_k_string
             result = search_for_kstring_in_intermediate(tabex_loc, intermediate_loc, parent, alt_k_string)
             temp_alt_count.append(result)
-        print(temp_alt_count)
-        print(temp_ref_count)
+        print("alt {}".format(temp_alt_count))
+        print("ref {}".format(temp_ref_count))
     return
 
 def search_for_kstring_in_intermediate(tabex_loc, intermediate_loc, ref_loc, k_string):
     file_name = ref_loc.split("/")[-1]
     ktab_path = "{}{}.ktab".format(intermediate_loc, file_name)
-    command_to_run = "{} {} {} {}".format(tabex_loc, ktab_path, ref_loc, k_string)
+    command_to_run = "{} {} {} {}".format(tabex_loc, ktab_path, k_string)
     print(command_to_run)
     output = os.popen(command_to_run).read()
-    if output.find("Not Found") == -1:
+    if output.find("Not found") == -1:
         exists = False
     else:
         exists = True
