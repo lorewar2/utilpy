@@ -13,35 +13,29 @@ def run_fastk_make_intermediate_files(k, fast_k_loc, intermediate_loc, ref_loc):
     return
 
 def open_vcf_and_get_k_mer(k, vcf_loc, ref_loc):
-    ref_kmer_list = []
-    alt_kmer_list = []
-    variant_reader = vcf.Reader(file=vcf_loc)
+    ref_alt_kmer_list = []
+    variant_reader = vcf.Reader(filename = vcf_loc)
     ref_fasta = pyfaidx.Fasta(ref_loc)
     if k % 2 == 0:
-        k_first_half_length = (k // 2) + 1
+        k_first_half_length = k // 2
         k_second_half_length = k // 2
     else:
-        k_first_half_length = k // 2
+        k_first_half_length = (k // 2) + 1
         k_second_half_length = k // 2
     for record in variant_reader:
         if len(record.alleles) > 2:
             continue
         ref = record.alleles[0]
         alt = record.alleles[1]
-        try:
-            kmer_first_half = ref_fasta[record.CHROM][record.POS - k_first_half_length : record.POS]
-            kmer_second_half = ref_fasta[record.CHROM][record.POS + len(ref) : record.POS + k_second_half_length]
-            kmer_second_half_alt = ref_fasta[record.CHROM][record.POS + len(ref) : record.POS + len(ref) - len(alt) + k_second_half_length + 1]
-            ref_kmer = kmer_first_half + ref + kmer_second_half
-            alt_kmer = kmer_first_half + alt + kmer_second_half_alt
-            print(ref_kmer)
-            print(alt_kmer)
-            ref_kmer_list.append(ref_kmer)
-            alt_kmer_list.append(alt_kmer)
-        except:
-            pass
-        break
-    return
+        kmer_first_half = ref_fasta[record.CHROM][record.POS - k_first_half_length : record.POS]
+        kmer_second_half_ref = ref_fasta[record.CHROM][record.POS + len(ref) : record.POS + k_second_half_length]
+        kmer_second_half_alt = ref_fasta[record.CHROM][record.POS + len(ref) : record.POS + len(ref) - len(alt) + k_second_half_length]
+        if ((len(kmer_first_half) + len(kmer_second_half_ref) + len(ref)) == k) and ((len(kmer_first_half) + len(kmer_second_half_alt) + len(alt)) == k):
+            ref_kmer = (kmer_first_half + ref + kmer_second_half_ref).lower()
+            alt_kmer = (kmer_first_half + alt + kmer_second_half_alt).lower()
+            ref_alt_kmer_list.append((ref_kmer, alt_kmer))
+            print(ref_kmer + "appended")
+    return ref_alt_kmer_list
 
 def search_for_kmer_in_intermediate(tabex_loc, intermediate_loc, ref_loc, k_string):
     file_name = ref_loc.split("/")[-1]
