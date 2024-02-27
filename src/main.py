@@ -11,7 +11,7 @@ K = 30
 
 def main():
     # make intermediate files for hera12 stieg12
-    util.run_fastk_make_intermediate_files(K, FASTK_LOC, INTERMEDIATE_LOC, HERA1_REF_LOC)
+    #util.run_fastk_make_intermediate_files(K, FASTK_LOC, INTERMEDIATE_LOC, HERA1_REF_LOC)
     #util.run_fastk_make_intermediate_files(K, FASTK_LOC, INTERMEDIATE_LOC, HERA2_REF_LOC)
     #util.run_fastk_make_intermediate_files(K, FASTK_LOC, INTERMEDIATE_LOC, STIEG1_REF_LOC)
     #util.run_fastk_make_intermediate_files(K, FASTK_LOC, INTERMEDIATE_LOC, STIEG2_REF_LOC)
@@ -19,7 +19,7 @@ def main():
     # search the vcf and find a kmer
 
     # look for the kmer in all 4 parents
-
+    util.search_for_kmer_in_intermediate(TABEX_LOC, INTERMEDIATE_LOC, HERA1_REF_LOC)
     return
 
 if __name__ == "__main__":
