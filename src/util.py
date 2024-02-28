@@ -30,6 +30,7 @@ def open_vcf_and_get_k_mer(k, vcf_loc, ref_loc):
             continue
         ref = record.alleles[0]
         alt = record.alleles[1]
+        print(record.INFO)
         kmer_first_half = ref_fasta[record.CHROM][record.POS - k_first_half_length : record.POS]
         kmer_second_half_ref = ref_fasta[record.CHROM][record.POS + len(ref) : record.POS + k_second_half_length]
         kmer_second_half_alt = ref_fasta[record.CHROM][record.POS + len(ref) : record.POS + len(ref) - len(alt) + k_second_half_length]
@@ -37,8 +38,9 @@ def open_vcf_and_get_k_mer(k, vcf_loc, ref_loc):
             ref_kmer = "{}{}{}".format(kmer_first_half, ref, kmer_second_half_ref).lower()
             alt_kmer = "{}{}{}".format(kmer_first_half, alt, kmer_second_half_alt).lower()
             ref_alt_kmer_list.append((ref_kmer, alt_kmer))
-            # test just one
-            break
+            # test just 100 or specified iterations
+            if index > 100:
+                break
             #print(ref_kmer + "appended")
     return ref_alt_kmer_list
 

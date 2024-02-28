@@ -22,7 +22,8 @@ def main():
     # look for the kmer in all 4 parents
     #util.search_for_kmer_in_intermediate(TABEX_LOC, INTERMEDIATE_LOC, HERA1_REF_LOC, "aaaaaaatatttagtggtgataaattttct")
     k_string_vec = util.open_vcf_and_get_k_mer(K, VCF_LOC, HERA1_REF_LOC)
-    util.find_which_parent_contain_kstring(k_string_vec, TABEX_LOC, INTERMEDIATE_LOC, [HERA1_REF_LOC, HERA2_REF_LOC, STIEG1_REF_LOC, STIEG2_REF_LOC])
+    modified_k_string_vec = [k_string_vec[0]]
+    util.find_which_parent_contain_kstring(modified_k_string_vec, TABEX_LOC, INTERMEDIATE_LOC, [HERA1_REF_LOC, HERA2_REF_LOC, STIEG1_REF_LOC, STIEG2_REF_LOC])
     return
 
 if __name__ == "__main__":
