@@ -14,6 +14,7 @@ def run_fastk_make_intermediate_files(k, fast_k_loc, intermediate_loc, ref_loc):
 
 def open_vcf_and_get_k_mer(k, vcf_loc, ref_loc):
     ref_alt_kmer_list = []
+    haplotype_alleles_list = []
     variant_reader = vcf.Reader(filename = vcf_loc)
     ref_fasta = pyfaidx.Fasta(ref_loc)
     print("Gathering {}-mers from {} vcf and {} ref".format(k, vcf_loc, ref_loc))
@@ -37,20 +38,22 @@ def open_vcf_and_get_k_mer(k, vcf_loc, ref_loc):
         if ((len(kmer_first_half) + len(kmer_second_half_ref) + len(ref)) == k) and ((len(kmer_first_half) + len(kmer_second_half_alt) + len(alt)) == k):
             ref_kmer = "{}{}{}".format(kmer_first_half, ref, kmer_second_half_ref).lower()
             alt_kmer = "{}{}{}".format(kmer_first_half, alt, kmer_second_half_alt).lower()
+            haplotype_alleles_list.append(record.samples[0]["GT"])
             ref_alt_kmer_list.append((ref_kmer, alt_kmer))
             # test just 100 or specified iterations
             if index > 100:
                 break
             #print(ref_kmer + "appended")
-    return ref_alt_kmer_list
+    return ref_alt_kmer_list, haplotype_alleles_list
 
-def find_which_parent_contain_kstring(k_string_vec, tabex_loc, intermediate_loc, parent_ref_vec):
+def find_which_parent_contain_kstring(k_string_vec, haplotype_allele_vec, tabex_loc, intermediate_loc, parent_ref_vec):
     ref_counter = [0, 0, 0, 0]
     alt_counter = [0, 0, 0, 0]
-    for k_string in k_string_vec:
+    for k_index, k_string in enumerate(k_string_vec):
         ref_k_string, alt_k_string = k_string
         temp_ref_count = []
         temp_alt_count = []
+        print(haplotype_allele_vec[k_index])
         for parent_id, parent in enumerate(parent_ref_vec):
             # check 4 parents for the ref_k_string
             result = search_for_kstring_in_intermediate(tabex_loc, intermediate_loc, parent, ref_k_string)
@@ -68,6 +71,7 @@ def search_for_kstring_in_intermediate(tabex_loc, intermediate_loc, ref_loc, k_s
     command_to_run = "{} {} {}".format(tabex_loc, ktab_path, k_string)
     print(command_to_run)
     output = os.popen(command_to_run).read()
+    print(output)
     if output.find("Not found") == -1:
         exists = False
     else:

@@ -6,7 +6,7 @@ HERA1_REF_LOC = "/data1/phasstphase_test/potato/k_mer_plot_stuff/parent_ref/hera
 HERA2_REF_LOC = "/data1/phasstphase_test/potato/k_mer_plot_stuff/parent_ref/hera2/solTubHeraHap2.fa"
 STIEG1_REF_LOC = "/data1/phasstphase_test/potato/k_mer_plot_stuff/parent_ref/stieg1/solTubStiegHap1.fa"
 STIEG2_REF_LOC = "/data1/phasstphase_test/potato/k_mer_plot_stuff/parent_ref/stieg2/solTubStiegHap2.fa"
-VCF_LOC = "/data1/phasstphase_test/potato/hifi/potato_deep.vcf"
+VCF_LOC = "/data1/phasstphase_test/potato/vcf_test_wg/phasstphase.vcf.gz"
 INTERMEDIATE_LOC = "./intermediate/"
 K = 30
 
@@ -21,9 +21,10 @@ def main():
 
     # look for the kmer in all 4 parents
     #util.search_for_kmer_in_intermediate(TABEX_LOC, INTERMEDIATE_LOC, HERA1_REF_LOC, "aaaaaaatatttagtggtgataaattttct")
-    k_string_vec = util.open_vcf_and_get_k_mer(K, VCF_LOC, HERA1_REF_LOC)
+    k_string_vec, haplotype_allele_vec = util.open_vcf_and_get_k_mer(K, VCF_LOC, HERA1_REF_LOC)
     modified_k_string_vec = [k_string_vec[0]]
-    util.find_which_parent_contain_kstring(modified_k_string_vec, TABEX_LOC, INTERMEDIATE_LOC, [HERA1_REF_LOC, HERA2_REF_LOC, STIEG1_REF_LOC, STIEG2_REF_LOC])
+    modified_haplotype_allele_vec = [haplotype_allele_vec[0]]
+    util.find_which_parent_contain_kstring(modified_k_string_vec, modified_haplotype_allele_vec, TABEX_LOC, INTERMEDIATE_LOC, [HERA1_REF_LOC, HERA2_REF_LOC, STIEG1_REF_LOC, STIEG2_REF_LOC])
     return
 
 if __name__ == "__main__":
