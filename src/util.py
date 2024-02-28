@@ -31,7 +31,6 @@ def open_vcf_and_get_k_mer(k, vcf_loc, ref_loc):
             continue
         ref = record.alleles[0]
         alt = record.alleles[1]
-        print(record.INFO)
         kmer_first_half = ref_fasta[record.CHROM][record.POS - k_first_half_length : record.POS]
         kmer_second_half_ref = ref_fasta[record.CHROM][record.POS + len(ref) : record.POS + k_second_half_length]
         kmer_second_half_alt = ref_fasta[record.CHROM][record.POS + len(ref) : record.POS + len(ref) - len(alt) + k_second_half_length]
@@ -76,6 +75,7 @@ def search_for_kstring_in_intermediate(tabex_loc, intermediate_loc, ref_loc, k_s
         exists = False
     else:
         exists = True
+    print(exists)
     return exists
 
 #./FastK -k30 -N"./../" -T64 /data1/phasstphase_test/potato/reference/solTubHeraHap1.fa
