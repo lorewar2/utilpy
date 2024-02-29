@@ -79,6 +79,3 @@ def search_for_kstring_in_intermediate(tabex_loc, intermediate_loc, ref_loc, k_s
     else:
         exists = False
     return exists
-
-#./FastK -k30 -N"./../" -T64 /data1/phasstphase_test/potato/reference/solTubHeraHap1.fa
-# aaaaaaatatttagtggtgataaattttct
