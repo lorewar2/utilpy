@@ -8,7 +8,7 @@ STIEG1_REF_LOC = "/data1/phasstphase_test/potato/k_mer_plot_stuff/parent_ref/sti
 STIEG2_REF_LOC = "/data1/phasstphase_test/potato/k_mer_plot_stuff/parent_ref/stieg2/solTubStiegHap2.fa"
 VCF_LOC = "/data1/phasstphase_test/potato/vcf_test_wg/phasstphase.vcf.gz"
 INTERMEDIATE_LOC = "./intermediate/"
-K = 30
+K = 40
 
 def main():
     # make intermediate files for hera12 stieg12
