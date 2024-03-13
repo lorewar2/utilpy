@@ -32,9 +32,9 @@ def open_vcf_and_get_k_mer(k, vcf_loc, ref_loc):
             continue
         ref = record.alleles[0]
         alt = record.alleles[1]
-        kmer_first_half = ref_fasta[record.CHROM][record.POS - k_first_half_length : record.POS]
-        kmer_second_half_ref = ref_fasta[record.CHROM][record.POS + len(ref) : record.POS + k_second_half_length]
-        kmer_second_half_alt = ref_fasta[record.CHROM][record.POS + len(ref) : record.POS + len(ref) - len(alt) + k_second_half_length]
+        kmer_first_half = ref_fasta[record.CHROM][record.POS - k_first_half_length + 1 : record.POS + 1]
+        kmer_second_half_ref = ref_fasta[record.CHROM][record.POS + 1 + len(ref) : record.POS + k_second_half_length]
+        kmer_second_half_alt = ref_fasta[record.CHROM][record.POS + 1 + len(ref) : record.POS + len(ref) - len(alt) + k_second_half_length]
         if ((len(kmer_first_half) + len(kmer_second_half_ref) + len(ref)) == k) and ((len(kmer_first_half) + len(kmer_second_half_alt) + len(alt)) == k):
             ref_kmer = "{}{}{}".format(kmer_first_half, ref, kmer_second_half_ref).lower()
             alt_kmer = "{}{}{}".format(kmer_first_half, alt, kmer_second_half_alt).lower()
