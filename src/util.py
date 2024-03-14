@@ -29,7 +29,7 @@ def open_vcf_and_get_k_mer(k, vcf_loc, ref_loc):
     for index, record in enumerate(variant_reader):
         if index % 10000 == 0:
             print("progress {:.2f}%".format(100 * variant_reader.read_bytes() / variant_reader.total_bytes()))
-        if len(record.alleles) > 2:
+        if len(record.alleles) != 3:
             continue
         ref = record.alleles[0]
         alt = record.alleles[1]
@@ -39,8 +39,12 @@ def open_vcf_and_get_k_mer(k, vcf_loc, ref_loc):
         if ((len(kmer_first_half) + len(kmer_second_half_ref) + len(ref)) == k) and ((len(kmer_first_half) + len(kmer_second_half_alt) + len(alt)) == k):
             ref_kmer = "{}{}{}".format(kmer_first_half, ref, kmer_second_half_ref).lower()
             alt_kmer = "{}{}{}".format(kmer_first_half, alt, kmer_second_half_alt).lower()
+            try:
+                phase_block = record.samples[0]["PS"]
+            except:
+                continue
+            phase_block_numbers.append(phase_block)
             haplotype_alleles_list.append(record.samples[0]["GT"])
-            phase_block_numbers.append(record.samples[0]["PS"])
             ref_alt_kmer_list.append((ref_kmer, alt_kmer))
             ref_location_list.append((record.CHROM, record.POS))
             # test just 100 or specified iterations
