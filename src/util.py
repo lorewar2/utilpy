@@ -23,9 +23,10 @@ def unique_kmers_for_parent_from_intermediates(logex_k_loc, intermediate_loc, pa
     # get the reference file names
     for (i, parent) in enumerate(parents):
         file_name = parent.split("/")[-1].split(".")[0]
+        table_name = "{}{}.ktab".format(intermediate_loc, parent.split("/")[-1])
         final_file_names.append("{}Unique.fa".format(file_name))
         temp_string = "{}".format(letters[i])
-        input_files = "{} {}".format(input_files, parent)
+        input_files = "{} {}".format(input_files, table_name)
         for (j, parent) in enumerate(parents):
             # the j index one is normal one
             if i == j:
