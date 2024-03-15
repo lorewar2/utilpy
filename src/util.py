@@ -117,8 +117,8 @@ def find_which_parent_contain_kstring(k_string_vec, haplotype_allele_vec, ref_lo
     return
 
 def search_for_kstring_in_intermediate(tabex_loc, intermediate_loc, ref_loc, k_string):
-    file_name = ref_loc.split("/")[-1]
-    ktab_path = "{}{}.ktab".format(intermediate_loc, file_name)
+    file_name = ref_loc.split("/")[-1].split(".")[0]
+    ktab_path = "{}{}Unique.fa.ktab".format(intermediate_loc, file_name)
     command_to_run = "{} {} {}".format(tabex_loc, ktab_path, k_string)
     #print(command_to_run)
     output = os.popen(command_to_run).read()
