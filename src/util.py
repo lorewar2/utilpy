@@ -25,21 +25,29 @@ def unique_kmers_for_parent_from_intermediates(logex_k_loc, intermediate_loc, pa
         file_name = parent.split("/")[-1].split(".")[0]
         table_name = "{}{}.ktab".format(intermediate_loc, parent.split("/")[-1])
         final_file_names.append("./intermediate/{}Unique.fa".format(file_name))
-        temp_string = "{}".format(letters[i])
+        temp_string = ""
         input_files = "{} {}".format(input_files, table_name)
         for (j, parent) in enumerate(parents):
-            # the j index one is normal one
-            if i == j:
-                continue
+            # i is in the upper half
+            if i > number_of_parents // 2:
+                # j's which are in upper half gets positives
+                if j > number_of_parents // 2:
+                    temp_string = "{} + {}".format(temp_string, letters[j])
+                else:
+                    temp_string = "{} - {}".format(temp_string, letters[j])
             else:
-                temp_string = "{} - {}".format(temp_string, letters[j])
+                # j's which are in upper half gets negatives
+                if j > number_of_parents // 2:
+                    temp_string = "{} - {}".format(temp_string, letters[j])
+                else:
+                    temp_string = "{} + {}".format(temp_string, letters[j])
         ABC_commands.append(temp_string)
     for (index, parent) in enumerate(parents):
         # make the command
         command = "{} -T64 '{} = {}' {}".format(logex_k_loc, final_file_names[index], ABC_commands[index], input_files)
         print(command)
         # run the command
-        print(os.popen(command).read())
+        #print(os.popen(command).read())
     return
 
 def open_vcf_and_get_k_mer(k, vcf_loc, ref_loc):
