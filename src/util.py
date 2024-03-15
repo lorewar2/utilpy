@@ -1,5 +1,6 @@
 import os
 import vcf
+import string
 import pyfaidx
 
 def run_fastk_make_intermediate_files(k, fast_k_loc, intermediate_loc, ref_loc):
@@ -10,6 +11,34 @@ def run_fastk_make_intermediate_files(k, fast_k_loc, intermediate_loc, ref_loc):
     # run the command
     print(command_to_run)
     print(os.popen(command_to_run).read())
+    return
+
+def unique_kmers_for_parent_from_intermediates(logex_k_loc, intermediate_loc, parents):
+    letters = string.ascii_uppercase
+    number_of_parents = len(parents)
+    letters = letters[0: number_of_parents]
+    final_file_names = []
+    ABC_commands = []
+    input_files = ""
+    # get the reference file names
+    for (i, parent) in enumerate(parents):
+        file_name = parent.split("/")[-1].split(".")[0]
+        final_file_names.append("{}Unique.fa".format(file_name))
+        temp_string = "{}".format(letters[i])
+        input_files = "{} {}".format(input_files, parent)
+        for (j, parent) in enumerate(parents):
+            # the j index one is normal one
+            if i == j:
+                continue
+            else:
+                temp_string = "{} - {}".format(temp_string, letters[j])
+        ABC_commands.append(temp_string)
+    for (index, parent) in enumerate(parents):
+        # make the command
+        command = "{} -T64 '{} = {}' {}".format(logex_k_loc, final_file_names[index], ABC_commands[index], input_files)
+        print(command)
+        # run the command
+        print(os.popen(command).read())
     return
 
 def open_vcf_and_get_k_mer(k, vcf_loc, ref_loc):
