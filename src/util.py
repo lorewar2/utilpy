@@ -14,43 +14,26 @@ def run_fastk_make_intermediate_files(k, fast_k_loc, intermediate_loc, ref_loc):
     return
 
 def unique_kmers_for_parent_from_intermediates(logex_k_loc, intermediate_loc, parents):
-    letters = string.ascii_uppercase
-    number_of_parents = len(parents)
-    letters = letters[0: number_of_parents]
-    final_file_names = []
-    ABC_commands = []
-    input_files = ""
-    # get the reference file names
-    for (i, parent) in enumerate(parents):
-        file_name = parent.split("/")[-1].split(".")[0]
-        table_name = "{}{}.ktab".format(intermediate_loc, parent.split("/")[-1])
-        final_file_names.append("./intermediate/{}Unique.fa".format(file_name))
-        first_assignment = True
-        temp_string = "{}".format(letters[i])
-        input_files = "{} {}".format(input_files, table_name)
-        for (j, parent) in enumerate(parents):
-            # i is in the upper half
-            if i == j:
-                continue
-            if i >= number_of_parents // 2:
-                # j's which are in upper half gets positives
-                if j >= number_of_parents // 2:
-                    temp_string = "{} & {}".format(temp_string, letters[j])
-                else:
-                    temp_string = "{} - {}".format(temp_string, letters[j])
-            else:
-                # j's which are in upper half gets negatives
-                if j >= number_of_parents // 2:
-                    temp_string = "{} - {}".format(temp_string, letters[j])
-                else:
-                    temp_string = "{} & {}".format(temp_string, letters[j])
-        ABC_commands.append(temp_string)
-    for (index, parent) in enumerate(parents):
-        # make the command
-        command = "{} -T64 '{} = {}' {}".format(logex_k_loc, final_file_names[index], ABC_commands[index], input_files)
-        print(command)
-        # run the command
-        print(os.popen(command).read())
+    # concancate two heras
+    hera_concat_file = "{}hera_concat.fa".format(intermediate_loc)
+    input_files = "{}{}.ktab {}{}.ktab".format(intermediate_loc, parents[0].split("/")[-1], intermediate_loc, parents[1].split("/")[-1])
+    command = "{} -T64 '{} = A |. B' {}".format(logex_k_loc, hera_concat_file, input_files)
+    print(os.popen(command).read())
+    # concancate two steig
+    stieg_concat_file = "{}stieg_concat.fa".format(intermediate_loc)
+    input_files = "{}{}.ktab {}{}.ktab".format(intermediate_loc, parents[0].split("/")[-1], intermediate_loc, parents[1].split("/")[-1])
+    command = "{} -T64 '{} = A |. B' {}".format(logex_k_loc, stieg_concat_file, input_files)
+    print(os.popen(command).read())
+    # make them unique A - B hera
+    hera_output_file = "{}hera_unique.fa".format(intermediate_loc)
+    input_files = "{}.ktab {}.ktab".format(hera_concat_file, stieg_concat_file)
+    command = "{} -T64 '{} = A - B' {}".format(logex_k_loc, hera_output_file, input_files)
+    print(os.popen(command).read())
+    # make them unique B - A stieg
+    stieg_output_file = "{}stieg_unique.fa".format(intermediate_loc)
+    input_files = "{}.ktab {}.ktab".format(hera_concat_file, stieg_concat_file)
+    command = "{} -T64 '{} = B - A' {}".format(logex_k_loc, stieg_output_file, input_files)
+    print(os.popen(command).read())
     return
 
 def open_vcf_and_get_k_mer(k, vcf_loc, ref_loc):
@@ -97,17 +80,27 @@ def open_vcf_and_get_k_mer(k, vcf_loc, ref_loc):
 def find_which_parent_contain_kstring(k_string_vec, haplotype_allele_vec, ref_loc_vec, phase_blocks, tabex_loc, intermediate_loc, parent_ref_vec):
     ref_counter = [0, 0, 0, 0]
     alt_counter = [0, 0, 0, 0]
+    concancated_ref_k_string = ""
+    concancated_alt_k_string = ""
     for k_index, k_string in enumerate(k_string_vec):
         ref_k_string, alt_k_string = k_string
+        concancated_ref_k_string = "{} {}".format(concancated_ref_k_string, ref_k_string)
+        concancated_alt_k_string = "{} {}".format(concancated_alt_k_string, alt_k_string)
+        # run tabx when 100 k strings are collected
+        if (k_index % 100) and (k_index != 0) == 0:
+            print("Running tabx for {}".format(concancated_ref_k_string))
+            for parent_id, parent in enumerate(parent_ref_vec):
+                # check 2 parents hera and stieg for the ref_k_string
+                result = search_for_kstring_in_intermediate(tabex_loc, intermediate_loc, parent, concancated_ref_k_string)
+                temp_ref_count.append(result)
+                # check 2 parents hera and stieg for the alt_k_string
+                result = search_for_kstring_in_intermediate(tabex_loc, intermediate_loc, parent, concancated_alt_k_string)
+                temp_alt_count.append(result)
+            concancated_ref_k_string = ""
+            concancated_alt_k_string = ""
         temp_ref_count = []
         temp_alt_count = []
-        for parent_id, parent in enumerate(parent_ref_vec):
-            # check 4 parents for the ref_k_string
-            result = search_for_kstring_in_intermediate(tabex_loc, intermediate_loc, parent, ref_k_string)
-            temp_ref_count.append(result)
-            # check 4 parents for the alt_k_string
-            result = search_for_kstring_in_intermediate(tabex_loc, intermediate_loc, parent, alt_k_string)
-            temp_alt_count.append(result)
+
         print("Reference location: {}".format(ref_loc_vec[k_index]))
         print("Haplotype: {}".format(haplotype_allele_vec[k_index]))
         print("Phase block number: {}".format(phase_blocks[k_index]))
