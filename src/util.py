@@ -97,7 +97,6 @@ def find_which_parent_contain_kstring(k_string_vec, haplotype_allele_vec, ref_lo
             local_i = 0
             for global_i in range(k_index - 20, k_index):
                 print(local_i, global_i)
-                local_i += 1
                 print("Reference location: {}".format(ref_loc_vec[global_i]))
                 print("Haplotype: {}".format(haplotype_allele_vec[global_i]))
                 print("Phase block number: {}".format(phase_blocks[global_i]))
@@ -108,35 +107,64 @@ def find_which_parent_contain_kstring(k_string_vec, haplotype_allele_vec, ref_lo
                     print("New phase block processing.. {}".format(phase_blocks[global_i]))
                     final_result_blocks.append((phase_blocks[global_i], [0,0,0,0], [0,0,0,0], [0,0,0,0], [0,0,0,0]))
                 # change this and see the results
+                # if not phased correclty continue else make an array
+                if len(haplotype_allele_vec[global_i]) != 7:
+                    continue
+                else:
+                    haplotype_ref_alt = [0, 0, 0, 0]
+                    if haplotype_allele_vec[global_i][0] == "1":
+                        haplotype_ref_alt[0] = 1
+                    if haplotype_allele_vec[global_i][0] == "1":
+                        haplotype_ref_alt[1] = 1
+                    if haplotype_allele_vec[global_i][0] == "1":
+                        haplotype_ref_alt[2] = 1
+                    if haplotype_allele_vec[global_i][0] == "1":
+                        haplotype_ref_alt[3] = 1
+                    print(haplotype_ref_alt, haplotype_allele_vec[global_i])
                 if hera_ref_result[local_i]:
                     # increment the hera ref haplotypes
-                    final_result_blocks[-1][1][0] += 1
-                    final_result_blocks[-1][2][0] += 1
-                    final_result_blocks[-1][3][0] += 1
-                    final_result_blocks[-1][4][0] += 1
+                    if haplotype_ref_alt[0] == 0:
+                        final_result_blocks[-1][1][0] += 1
+                    if haplotype_ref_alt[1] == 0:
+                        final_result_blocks[-1][2][0] += 1
+                    if haplotype_ref_alt[2] == 0: 
+                        final_result_blocks[-1][3][0] += 1
+                    if haplotype_ref_alt[3] == 0: 
+                        final_result_blocks[-1][4][0] += 1
                 if hera_alt_result[local_i]:
-                    # increment the hera haplotypes which have alt
-                    final_result_blocks[-1][1][1] += 1
-                    final_result_blocks[-1][2][1] += 1
-                    final_result_blocks[-1][3][1] += 1
-                    final_result_blocks[-1][4][1] += 1
+                    # increment the hera alt haplotypes
+                    if haplotype_ref_alt[0] == 1:
+                        final_result_blocks[-1][1][1] += 1
+                    if haplotype_ref_alt[1] == 1:
+                        final_result_blocks[-1][2][1] += 1
+                    if haplotype_ref_alt[2] == 1: 
+                        final_result_blocks[-1][3][1] += 1
+                    if haplotype_ref_alt[3] == 1: 
+                        final_result_blocks[-1][4][1] += 1
                 if stieg_ref_result[local_i]:
-                    # increment the stieg haplotypes which have ref
-                    final_result_blocks[-1][1][2] += 1
-                    final_result_blocks[-1][2][2] += 1
-                    final_result_blocks[-1][3][2] += 1
-                    final_result_blocks[-1][4][2] += 1
+                    # increment the stieg ref haplotypes
+                    if haplotype_ref_alt[0] == 0:
+                        final_result_blocks[-1][1][2] += 1
+                    if haplotype_ref_alt[1] == 0:
+                        final_result_blocks[-1][2][2] += 1
+                    if haplotype_ref_alt[2] == 0: 
+                        final_result_blocks[-1][3][2] += 1
+                    if haplotype_ref_alt[3] == 0: 
+                        final_result_blocks[-1][4][2] += 1
                 if stieg_alt_result[local_i]:
-                    # increment the stieg haplotypes which have alt
-                    final_result_blocks[-1][1][3] += 1
-                    final_result_blocks[-1][2][3] += 1
-                    final_result_blocks[-1][3][3] += 1
-                    final_result_blocks[-1][4][3] += 1
+                    # increment the stieg alt haplotypes
+                    if haplotype_ref_alt[0] == 1:
+                        final_result_blocks[-1][1][3] += 1
+                    if haplotype_ref_alt[1] == 1:
+                        final_result_blocks[-1][2][3] += 1
+                    if haplotype_ref_alt[2] == 1: 
+                        final_result_blocks[-1][3][3] += 1
+                    if haplotype_ref_alt[3] == 1: 
+                        final_result_blocks[-1][4][3] += 1
+                local_i += 1
             break
         concancated_ref_k_string = "{} {}".format(concancated_ref_k_string, ref_k_string)
         concancated_alt_k_string = "{} {}".format(concancated_alt_k_string, alt_k_string)
-        
-        prev_phase_number = phase_blocks[k_index]
         temp_ref_count = []
         temp_alt_count = []
         print(final_result_blocks)
@@ -148,7 +176,6 @@ def find_which_parent_contain_kstring(k_string_vec, haplotype_allele_vec, ref_lo
         #     print("Steig exclusive ref kmer!")
         # if ((temp_alt_count[2] == True) or (temp_alt_count[3] == True)) and ((temp_alt_count[0] == False) and (temp_alt_count[1] == False)):
         #     print("Steig exclusive alt kmer!")                                                                            #print("\n\n")
-
     return
 
 def search_for_kstring_in_intermediate(tabex_loc, ref_loc, k_string):

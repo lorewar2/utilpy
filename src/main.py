@@ -10,7 +10,7 @@ STIEG2_REF_LOC = "/data1/phasstphase_test/potato/k_mer_plot_stuff/parent_ref/sti
 VCF_LOC = "/data1/phasstphase_test/potato/potato_deep_phased.vcf.gz"
 INTERMEDIATE_LOC = "./intermediate/"
 HERA_UNIQUE_LOC = "./intermediate/hera_unique.fa.ktab"
-STIEG_UNIQUE_LOC = "./intermediate/steig_unique.fa.ktab"
+STIEG_UNIQUE_LOC = "./intermediate/stieg_unique.fa.ktab"
 K = 40
 
 def main():
