@@ -2,6 +2,26 @@ import os
 import vcf
 import string
 import pyfaidx
+from multiprocessing import Process, Value, Array
+
+def thread_runner_kmer_search(number_of_threads, k_string_vec, haplotype_allele_vec, ref_loc_vec, phase_blocks, TABEX_LOC, INTERMEDIATE_LOC, HERA_UNIQUE_LOC, STIEG_UNIQUE_LOC):
+    # initialize variables
+    threads = [None] * number_of_threads
+    # get the length
+    total_len = len(k_string_vec)
+    one_thread_allocation = total_len / len(threads)
+    print(total_len)
+    for thread_index in range(len(threads)):
+        # calculate the start and end of thread allocate data for each thread
+        thread_start = int(one_thread_allocation * thread_index)
+        thread_end = int(thread_start + one_thread_allocation)
+        thread_k_string_vec = k_string_vec[thread_start: thread_end]
+        thread_haplotype_allele_vec = haplotype_allele_vec[thread_start: thread_end]
+        thread_ref_loc_vec = ref_loc_vec[thread_start: thread_end]
+        thread_phase_blocks = phase_blocks[thread_start: thread_end]
+        # run the thread
+        threads[thread_index] = Process(target=find_which_parent_contain_kstring, args=(thread_index, thread_k_string_vec, thread_haplotype_allele_vec, thread_ref_loc_vec, thread_phase_blocks, TABEX_LOC, INTERMEDIATE_LOC, HERA_UNIQUE_LOC, STIEG_UNIQUE_LOC))
+        threads[thread_index].start()
 
 def run_fastk_make_intermediate_files(k, fast_k_loc, intermediate_loc, ref_loc):
     # get the file name from path
@@ -77,7 +97,7 @@ def open_vcf_and_get_k_mer(k, vcf_loc, ref_loc):
             #print(ref_kmer + "appended")
     return ref_alt_kmer_list, haplotype_alleles_list, ref_location_list, phase_block_numbers
 
-def find_which_parent_contain_kstring(k_string_vec, haplotype_allele_vec, ref_loc_vec, phase_blocks, tabex_loc, intermediate_loc, hera_ref, stieg_ref):
+def find_which_parent_contain_kstring(thread_index, k_string_vec, haplotype_allele_vec, ref_loc_vec, phase_blocks, tabex_loc, intermediate_loc, hera_ref, stieg_ref):
     final_result_blocks = [(phase_blocks[0], [0,0,0,0], [0,0,0,0], [0,0,0,0], [0,0,0,0])] # one block is phase block, haplotype counts (hera ref, hera alt, stieg ref, stieg alt)
     concancated_ref_k_string = ""
     concancated_alt_k_string = ""
@@ -86,7 +106,6 @@ def find_which_parent_contain_kstring(k_string_vec, haplotype_allele_vec, ref_lo
         print(k_index, phase_blocks[k_index])
         # run tabx when 100 k strings are collected
         if (k_index % 20 == 0) and (k_index != 0):
-            print("Running tabx for phase block {}".format(prev_phase_number))
             hera_ref_result = search_for_kstring_in_intermediate(tabex_loc, hera_ref, concancated_ref_k_string)
             stieg_ref_result = search_for_kstring_in_intermediate(tabex_loc, stieg_ref, concancated_ref_k_string)
             hera_alt_result = search_for_kstring_in_intermediate(tabex_loc, hera_ref, concancated_alt_k_string)
@@ -114,11 +133,11 @@ def find_which_parent_contain_kstring(k_string_vec, haplotype_allele_vec, ref_lo
                     haplotype_ref_alt = [0, 0, 0, 0]
                     if haplotype_allele_vec[global_i][0] == "1":
                         haplotype_ref_alt[0] = 1
-                    if haplotype_allele_vec[global_i][0] == "1":
+                    if haplotype_allele_vec[global_i][2] == "1":
                         haplotype_ref_alt[1] = 1
-                    if haplotype_allele_vec[global_i][0] == "1":
+                    if haplotype_allele_vec[global_i][4] == "1":
                         haplotype_ref_alt[2] = 1
-                    if haplotype_allele_vec[global_i][0] == "1":
+                    if haplotype_allele_vec[global_i][6] == "1":
                         haplotype_ref_alt[3] = 1
                     print(haplotype_ref_alt, haplotype_allele_vec[global_i])
                 if hera_ref_result[local_i]:
@@ -162,20 +181,14 @@ def find_which_parent_contain_kstring(k_string_vec, haplotype_allele_vec, ref_lo
                     if haplotype_ref_alt[3] == 1: 
                         final_result_blocks[-1][4][3] += 1
                 local_i += 1
-            break
         concancated_ref_k_string = "{} {}".format(concancated_ref_k_string, ref_k_string)
         concancated_alt_k_string = "{} {}".format(concancated_alt_k_string, alt_k_string)
-        temp_ref_count = []
-        temp_alt_count = []
         print(final_result_blocks)
-        # if ((temp_ref_count[0] == True) or (temp_ref_count[1] == True)) and ((temp_ref_count[2] == False) and (temp_ref_count[3] == False)):
-        #     print("Hera exclusive ref kmer!")
-        # if ((temp_alt_count[0] == True) or (temp_alt_count[1] == True)) and ((temp_alt_count[2] == False) and (temp_alt_count[3] == False)):
-        #     print("Hera exclusive alt kmer!")
-        # if ((temp_ref_count[2] == True) or (temp_ref_count[3] == True)) and ((temp_ref_count[0] == False) and (temp_ref_count[1] == False)):
-        #     print("Steig exclusive ref kmer!")
-        # if ((temp_alt_count[2] == True) or (temp_alt_count[3] == True)) and ((temp_alt_count[0] == False) and (temp_alt_count[1] == False)):
-        #     print("Steig exclusive alt kmer!")                                                                            #print("\n\n")
+    # write the final result in file
+    write_path = "{}final_result_{}.txt".format(intermediate_loc, thread_index)
+    with open(write_path, 'a') as fw:
+        for block in final_result_blocks:
+            fw.write("{}".format(block))
     return
 
 def search_for_kstring_in_intermediate(tabex_loc, ref_loc, k_string):
