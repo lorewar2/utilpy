@@ -78,17 +78,16 @@ def open_vcf_and_get_k_mer(k, vcf_loc, ref_loc):
     return ref_alt_kmer_list, haplotype_alleles_list, ref_location_list, phase_block_numbers
 
 def find_which_parent_contain_kstring(k_string_vec, haplotype_allele_vec, ref_loc_vec, phase_blocks, tabex_loc, intermediate_loc, parent_ref_vec):
-    ref_counter = [0, 0, 0, 0]
-    alt_counter = [0, 0, 0, 0]
     concancated_ref_k_string = ""
     concancated_alt_k_string = ""
+    prev_phase_number = 0
     for k_index, k_string in enumerate(k_string_vec):
         ref_k_string, alt_k_string = k_string
         concancated_ref_k_string = "{} {}".format(concancated_ref_k_string, ref_k_string)
         concancated_alt_k_string = "{} {}".format(concancated_alt_k_string, alt_k_string)
         # run tabx when 100 k strings are collected
-        if (k_index % 100) and (k_index != 0) == 0:
-            print("Running tabx for {}".format(concancated_ref_k_string))
+        if (phase_blocks[k_index] != prev_phase_number) and (prev_phase_number != 0):
+            print("Running tabx for phase block {}".format(prev_phase_number))
             for parent_id, parent in enumerate(parent_ref_vec):
                 # check 2 parents hera and stieg for the ref_k_string
                 result = search_for_kstring_in_intermediate(tabex_loc, intermediate_loc, parent, concancated_ref_k_string)
@@ -98,24 +97,25 @@ def find_which_parent_contain_kstring(k_string_vec, haplotype_allele_vec, ref_lo
                 temp_alt_count.append(result)
             concancated_ref_k_string = ""
             concancated_alt_k_string = ""
+            break
         temp_ref_count = []
         temp_alt_count = []
 
-        print("Reference location: {}".format(ref_loc_vec[k_index]))
-        print("Haplotype: {}".format(haplotype_allele_vec[k_index]))
-        print("Phase block number: {}".format(phase_blocks[k_index]))
-        print("Ref kmer: {}".format(ref_k_string))
-        print("Alt kmer: {}".format(alt_k_string))
-        print("Ref kmer found: {}".format(temp_ref_count))
-        print("Alt kmer found: {}".format(temp_alt_count))
-        if ((temp_ref_count[0] == True) or (temp_ref_count[1] == True)) and ((temp_ref_count[2] == False) and (temp_ref_count[3] == False)):
-            print("Hera exclusive ref kmer!")
-        if ((temp_alt_count[0] == True) or (temp_alt_count[1] == True)) and ((temp_alt_count[2] == False) and (temp_alt_count[3] == False)):
-            print("Hera exclusive alt kmer!")
-        if ((temp_ref_count[2] == True) or (temp_ref_count[3] == True)) and ((temp_ref_count[0] == False) and (temp_ref_count[1] == False)):
-            print("Steig exclusive ref kmer!")
-        if ((temp_alt_count[2] == True) or (temp_alt_count[3] == True)) and ((temp_alt_count[0] == False) and (temp_alt_count[1] == False)):
-            print("Steig exclusive alt kmer!")
+        # print("Reference location: {}".format(ref_loc_vec[k_index]))
+        # print("Haplotype: {}".format(haplotype_allele_vec[k_index]))
+        # print("Phase block number: {}".format(phase_blocks[k_index]))
+        # print("Ref kmer: {}".format(ref_k_string))
+        # print("Alt kmer: {}".format(alt_k_string))
+        # print("Ref kmer found: {}".format(temp_ref_count))
+        # print("Alt kmer found: {}".format(temp_alt_count))
+        # if ((temp_ref_count[0] == True) or (temp_ref_count[1] == True)) and ((temp_ref_count[2] == False) and (temp_ref_count[3] == False)):
+        #     print("Hera exclusive ref kmer!")
+        # if ((temp_alt_count[0] == True) or (temp_alt_count[1] == True)) and ((temp_alt_count[2] == False) and (temp_alt_count[3] == False)):
+        #     print("Hera exclusive alt kmer!")
+        # if ((temp_ref_count[2] == True) or (temp_ref_count[3] == True)) and ((temp_ref_count[0] == False) and (temp_ref_count[1] == False)):
+        #     print("Steig exclusive ref kmer!")
+        # if ((temp_alt_count[2] == True) or (temp_alt_count[3] == True)) and ((temp_alt_count[0] == False) and (temp_alt_count[1] == False)):
+        #     print("Steig exclusive alt kmer!")
         print("\n\n")
         
     return
@@ -126,7 +126,8 @@ def search_for_kstring_in_intermediate(tabex_loc, intermediate_loc, ref_loc, k_s
     command_to_run = "{} {} {}".format(tabex_loc, ktab_path, k_string)
     #print(command_to_run)
     output = os.popen(command_to_run).read()
-    print(output.splitlines()[-1])
+    split_lines = output.splitlines()
+    print(output)
     if output.find("Not found") == -1:
         exists = True
     else:
