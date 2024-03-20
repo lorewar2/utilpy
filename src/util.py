@@ -91,10 +91,10 @@ def find_which_parent_contain_kstring(k_string_vec, haplotype_allele_vec, ref_lo
             print("Running tabx for phase block {}".format(prev_phase_number))
             for parent_id, parent in enumerate(parent_ref_vec):
                 # check 2 parents hera and stieg for the ref_k_string
-                result = search_for_kstring_in_intermediate(tabex_loc, intermediate_loc, parent, concancated_ref_k_string)
+                result = search_for_kstring_in_intermediate(tabex_loc, parent, concancated_ref_k_string)
                 temp_ref_count.append(result)
                 # check 2 parents hera and stieg for the alt_k_string
-                result = search_for_kstring_in_intermediate(tabex_loc, intermediate_loc, parent, concancated_alt_k_string)
+                result = search_for_kstring_in_intermediate(tabex_loc, parent, concancated_alt_k_string)
                 temp_alt_count.append(result)
             concancated_ref_k_string = ""
             concancated_alt_k_string = ""
@@ -120,10 +120,8 @@ def find_which_parent_contain_kstring(k_string_vec, haplotype_allele_vec, ref_lo
 
     return
 
-def search_for_kstring_in_intermediate(tabex_loc, intermediate_loc, ref_loc, k_string):
-    file_name = ref_loc.split("/")[-1].split(".")[0]
-    ktab_path = "{}{}Unique.fa.ktab".format(intermediate_loc, file_name)
-    command_to_run = "{} {} {}".format(tabex_loc, ktab_path, k_string)
+def search_for_kstring_in_intermediate(tabex_loc, ref_loc, k_string):
+    command_to_run = "{} {} {}".format(tabex_loc, ref_loc, k_string)
     #print(command_to_run)
     output = os.popen(command_to_run).read()
     split_lines = output.splitlines()
