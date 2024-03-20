@@ -21,7 +21,7 @@ def unique_kmers_for_parent_from_intermediates(logex_k_loc, intermediate_loc, pa
     print(os.popen(command).read())
     # concancate two steig
     stieg_concat_file = "{}stieg_concat.fa".format(intermediate_loc)
-    input_files = "{}{}.ktab {}{}.ktab".format(intermediate_loc, parents[0].split("/")[-1], intermediate_loc, parents[1].split("/")[-1])
+    input_files = "{}{}.ktab {}{}.ktab".format(intermediate_loc, parents[2].split("/")[-1], intermediate_loc, parents[3].split("/")[-1])
     command = "{} -T64 '{} = A |. B' {}".format(logex_k_loc, stieg_concat_file, input_files)
     print(os.popen(command).read())
     # make them unique A - B hera
@@ -72,7 +72,7 @@ def open_vcf_and_get_k_mer(k, vcf_loc, ref_loc):
             ref_alt_kmer_list.append((ref_kmer, alt_kmer))
             ref_location_list.append((record.CHROM, record.POS))
             # test just 100 or specified iterations
-            if index > 100:
+            if index > 1000:
                 break
             #print(ref_kmer + "appended")
     return ref_alt_kmer_list, haplotype_alleles_list, ref_location_list, phase_block_numbers
@@ -85,8 +85,9 @@ def find_which_parent_contain_kstring(k_string_vec, haplotype_allele_vec, ref_lo
         ref_k_string, alt_k_string = k_string
         concancated_ref_k_string = "{} {}".format(concancated_ref_k_string, ref_k_string)
         concancated_alt_k_string = "{} {}".format(concancated_alt_k_string, alt_k_string)
+        print(k_index, phase_blocks[k_index])
         # run tabx when 100 k strings are collected
-        if (phase_blocks[k_index] != prev_phase_number) and (prev_phase_number != 0):
+        if (k_index % 15 == 0) and (k_index != 0):
             print("Running tabx for phase block {}".format(prev_phase_number))
             for parent_id, parent in enumerate(parent_ref_vec):
                 # check 2 parents hera and stieg for the ref_k_string
@@ -98,9 +99,9 @@ def find_which_parent_contain_kstring(k_string_vec, haplotype_allele_vec, ref_lo
             concancated_ref_k_string = ""
             concancated_alt_k_string = ""
             break
+        prev_phase_number = phase_blocks[k_index]
         temp_ref_count = []
         temp_alt_count = []
-
         # print("Reference location: {}".format(ref_loc_vec[k_index]))
         # print("Haplotype: {}".format(haplotype_allele_vec[k_index]))
         # print("Phase block number: {}".format(phase_blocks[k_index]))
@@ -115,9 +116,8 @@ def find_which_parent_contain_kstring(k_string_vec, haplotype_allele_vec, ref_lo
         # if ((temp_ref_count[2] == True) or (temp_ref_count[3] == True)) and ((temp_ref_count[0] == False) and (temp_ref_count[1] == False)):
         #     print("Steig exclusive ref kmer!")
         # if ((temp_alt_count[2] == True) or (temp_alt_count[3] == True)) and ((temp_alt_count[0] == False) and (temp_alt_count[1] == False)):
-        #     print("Steig exclusive alt kmer!")
-        print("\n\n")
-        
+        #     print("Steig exclusive alt kmer!")                                                                            #print("\n\n")
+
     return
 
 def search_for_kstring_in_intermediate(tabex_loc, intermediate_loc, ref_loc, k_string):
