@@ -96,7 +96,7 @@ def open_vcf_and_get_k_mer(k, vcf_loc, ref_loc):
     return ref_alt_kmer_list, haplotype_alleles_list, ref_location_list, phase_block_numbers
 
 def find_which_parent_contain_kstring(thread_index, k_string_vec, haplotype_allele_vec, ref_loc_vec, phase_blocks, tabex_loc, intermediate_loc, hera_ref, stieg_ref):
-    final_result_blocks = [(phase_blocks[0], [0,0,0,0], [0,0,0,0], [0,0,0,0], [0,0,0,0], "")] # one block is phase block, haplotype counts (hera ref, hera alt, stieg ref, stieg alt)
+    final_result_blocks = [(phase_blocks[0], [0,0,0,0], [0,0,0,0], [0,0,0,0], [0,0,0,0], [0,0,0,0])] # one block is phase block, haplotype counts (hera ref, hera alt, stieg ref, stieg alt)
     concancated_ref_k_string = ""
     concancated_alt_k_string = ""
     for k_index, k_string in enumerate(k_string_vec):
@@ -124,13 +124,13 @@ def find_which_parent_contain_kstring(thread_index, k_string_vec, haplotype_alle
                 # make a new block if the phase block is different
                 if phase_blocks[global_i] != final_result_blocks[-1][0]:
                     print("New phase block processing.. {}".format(phase_blocks[global_i]))
-                    final_result_blocks.append((phase_blocks[global_i], [0,0,0,0], [0,0,0,0], [0,0,0,0], [0,0,0,0], ""))
+                    final_result_blocks.append((phase_blocks[global_i], [0,0,0,0], [0,0,0,0], [0,0,0,0], [0,0,0,0], [0,0,0,0]))
                 # change this and see the results
                 # if not phased correclty continue else make an array
                 if len(haplotype_allele_vec[global_i]) != 7:
                     continue
                 else:
-                    final_result_blocks[-1][4] = haplotype_allele_vec[global_i]
+                    
                     haplotype_ref_alt = [0, 0, 0, 0]
                     if haplotype_allele_vec[global_i][0] == "1":
                         haplotype_ref_alt[0] = 1
@@ -140,6 +140,10 @@ def find_which_parent_contain_kstring(thread_index, k_string_vec, haplotype_alle
                         haplotype_ref_alt[2] = 1
                     if haplotype_allele_vec[global_i][6] == "1":
                         haplotype_ref_alt[3] = 1
+                    final_result_blocks[-1][5][0] = haplotype_ref_alt[0]
+                    final_result_blocks[-1][5][1] = haplotype_ref_alt[1]
+                    final_result_blocks[-1][5][2] = haplotype_ref_alt[2]
+                    final_result_blocks[-1][5][3] = haplotype_ref_alt[3]
                     #print(haplotype_ref_alt, haplotype_allele_vec[global_i])
                 if hera_ref_result[local_i]:
                     # increment the hera ref haplotypes
