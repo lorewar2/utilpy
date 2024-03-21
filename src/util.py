@@ -107,10 +107,10 @@ def find_which_parent_contain_kstring(thread_index, k_string_vec, haplotype_alle
         if k_index % 1000 == 0:
             print("Thread {} progress {}%".format(thread_index, 100 * k_index / len(k_string_vec)))
         if (k_index % 20 == 0) and (k_index != 0):
-            hera_ref_result = search_for_kstring_in_intermediate(tabex_loc, hera_ref, concancated_ref_k_string)
-            stieg_ref_result = search_for_kstring_in_intermediate(tabex_loc, stieg_ref, concancated_ref_k_string)
-            hera_alt_result = search_for_kstring_in_intermediate(tabex_loc, hera_ref, concancated_alt_k_string)
-            stieg_alt_result = search_for_kstring_in_intermediate(tabex_loc, stieg_ref, concancated_alt_k_string)
+            hera_ref_result, hera_ref_flags = search_for_kstring_in_intermediate(tabex_loc, hera_ref, concancated_ref_k_string)
+            stieg_ref_result, stieg_ref_flags = search_for_kstring_in_intermediate(tabex_loc, stieg_ref, concancated_ref_k_string)
+            hera_alt_result, hera_alt_flags = search_for_kstring_in_intermediate(tabex_loc, hera_ref, concancated_alt_k_string)
+            stieg_alt_result, stieg_alt_flags = search_for_kstring_in_intermediate(tabex_loc, stieg_ref, concancated_alt_k_string)
             concancated_ref_k_string = ""
             concancated_alt_k_string = ""
             # process the stuff put in appropriate phase block and haplotype (increment)
@@ -128,12 +128,16 @@ def find_which_parent_contain_kstring(thread_index, k_string_vec, haplotype_alle
                     with open(write_path, 'a') as fw:
                         fw.write("{}\n".format(final_result_blocks[-1]))
                     final_result_blocks.append((phase_blocks[global_i], [0,0,0,0], [0,0,0,0], [0,0,0,0], [0,0,0,0]))
-                # change this and see the results
-                # if not phased correclty continue else make an array
-                if not (hera_ref_result[local_i]and stieg_alt_result[local_i]) or (hera_alt_result[local_i] and stieg_ref_result[local_i]):
+                
+                # continue if not satisfying any of theese conditions # flag exclusive not phased
+                if hera_ref_flags[local_i] or hera_alt_flags[local_i] or stieg_alt_flags[local_i] or stieg_ref_flags[local_i]:
+                    local_i += 1
                     continue
-                print("processing {} {} {} {}".format(hera_ref_result[local_i], stieg_alt_result[local_i], hera_alt_result[local_i], stieg_ref_result[local_i]))
+                if not (hera_ref_result[local_i]and stieg_alt_result[local_i]) or (hera_alt_result[local_i] and stieg_ref_result[local_i]):
+                    local_i += 1
+                    continue
                 if len(haplotype_allele_vec[global_i]) != 7:
+                    local_i += 1
                     continue
                 else:
                     haplotype_ref_alt = [0, 0, 0, 0]
@@ -145,7 +149,8 @@ def find_which_parent_contain_kstring(thread_index, k_string_vec, haplotype_alle
                         haplotype_ref_alt[2] = 1
                     if haplotype_allele_vec[global_i][6] == "1":
                         haplotype_ref_alt[3] = 1
-                    #print(haplotype_ref_alt, haplotype_allele_vec[global_i])
+                    #print(haplotype_ref_alt, haplotype_allele_vec[global_i])]
+                print("processing {} {} {} {}".format(hera_ref_result[local_i], stieg_alt_result[local_i], hera_alt_result[local_i], stieg_ref_result[local_i]))
                 if hera_ref_result[local_i]:
                     # increment the hera ref haplotypes
                     if haplotype_ref_alt[0] == 0:
@@ -195,6 +200,7 @@ def find_which_parent_contain_kstring(thread_index, k_string_vec, haplotype_alle
 
 def search_for_kstring_in_intermediate(tabex_loc, ref_loc, k_string):
     array_for_results = []
+    array_for_flags = []
     command_to_run = "{} {} {}".format(tabex_loc, ref_loc, k_string)
     output = os.popen(command_to_run).read()
     split_lines = output.splitlines()
@@ -204,5 +210,9 @@ def search_for_kstring_in_intermediate(tabex_loc, ref_loc, k_string):
         else:
             exists = False
         if index >= 1:
+            if (split_line[46] != "1") and (exists == True):
+                array_for_flags.append(True)
+            else:
+                array_for_flags.append(False)
             array_for_results.append(exists)
-    return array_for_results
+    return array_for_results, array_for_flags
