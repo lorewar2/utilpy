@@ -5,10 +5,10 @@ import pyfaidx
 from multiprocessing import Process, Value, Array
 
 TABEX_LOC = "/home/mweerakoon/fastk/FASTK/Tabex"
-HERA1_REF_LOC = "/data1/phasstphase_test/potato/k_mer_plot_stuff/parent_ref/hera1/solTubHeraHap1.fa"
-HERA2_REF_LOC = "/data1/phasstphase_test/potato/k_mer_plot_stuff/parent_ref/hera2/solTubHeraHap2.fa"
-STIEG1_REF_LOC = "/data1/phasstphase_test/potato/k_mer_plot_stuff/parent_ref/stieg1/solTubStiegHap1.fa"
-STIEG2_REF_LOC = "/data1/phasstphase_test/potato/k_mer_plot_stuff/parent_ref/stieg2/solTubStiegHap2.fa"
+HERA1_REF_LOC = "intermediate/solTubHeraHap1.fa.ktab"
+HERA2_REF_LOC = "intermediate/solTubHeraHap2.fa.ktab"
+STIEG1_REF_LOC = "intermediate/solTubStiegHap1.fa.ktab"
+STIEG2_REF_LOC = "intermediate/solTubStiegHap2.fa.ktab"
 
 def find_specific_phaseblock_kmer (k, vcf_loc, ref_loc, phase_block_required):
     ref_alt_kmer_list = []
