@@ -135,7 +135,6 @@ def find_which_parent_contain_kstring(thread_index, k_string_vec, haplotype_alle
                     with open(write_path, 'a') as fw:
                         fw.write("{}\n".format(final_result_blocks[-1]))
                     final_result_blocks.append((phase_blocks[global_i], [0,0,0,0], [0,0,0,0], [0,0,0,0], [0,0,0,0]))
-                
                 # continue if not satisfying any of theese conditions # flag exclusive not phased
                 if hera_ref_flags[local_i] or hera_alt_flags[local_i] or stieg_alt_flags[local_i] or stieg_ref_flags[local_i]:
                     local_i += 1
