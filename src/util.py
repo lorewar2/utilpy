@@ -4,14 +4,19 @@ import string
 import pyfaidx
 from multiprocessing import Process, Value, Array
 
+TABEX_LOC = "/home/mweerakoon/fastk/FASTK/Tabex"
+HERA1_REF_LOC = "/data1/phasstphase_test/potato/k_mer_plot_stuff/parent_ref/hera1/solTubHeraHap1.fa"
+HERA2_REF_LOC = "/data1/phasstphase_test/potato/k_mer_plot_stuff/parent_ref/hera2/solTubHeraHap2.fa"
+STIEG1_REF_LOC = "/data1/phasstphase_test/potato/k_mer_plot_stuff/parent_ref/stieg1/solTubStiegHap1.fa"
+STIEG2_REF_LOC = "/data1/phasstphase_test/potato/k_mer_plot_stuff/parent_ref/stieg2/solTubStiegHap2.fa"
+
 def find_specific_phaseblock_kmer (k, vcf_loc, ref_loc, phase_block_required):
     ref_alt_kmer_list = []
     haplotype_alleles_list = []
     ref_location_list = []
-    phase_block_numbers = []
     variant_reader = vcf.Reader(filename = vcf_loc)
     ref_fasta = pyfaidx.Fasta(ref_loc)
-    print("Gathering {}-mers from {} vcf and {} ref".format(k, vcf_loc, ref_loc))
+    print("Gathering {}-mers from {} vcf and {} ref for phase block {}".format(k, vcf_loc, ref_loc, phase_block_required))
     if k % 2 == 0:
         k_first_half_length = k // 2
         k_second_half_length = k // 2
@@ -19,26 +24,19 @@ def find_specific_phaseblock_kmer (k, vcf_loc, ref_loc, phase_block_required):
         k_first_half_length = (k // 2) + 1
         k_second_half_length = k // 2
     for index, record in enumerate(variant_reader):
+        if index % 10000 == 0:
+            print("Searching progress {:.2f}%".format(100 * variant_reader.read_bytes() / variant_reader.total_bytes()))
         try:
             phase_block = record.samples[0]["PS"]
-            print(phase_block)
+            #print(phase_block)
             if phase_block != phase_block_required:
                 continue
             else:
                 print("FOUND")
-                break
         except:
             continue
         # processing the required phase block
         # get all the info
-
-        # find in parent stuff
-
-        # calculate all 
-        if index % 10000 == 0:
-            print("progress {:.2f}%".format(100 * variant_reader.read_bytes() / variant_reader.total_bytes()))
-            if index > 1000:
-                break
         if len(record.alleles) != 3:
             continue
         ref = record.alleles[0]
@@ -49,12 +47,19 @@ def find_specific_phaseblock_kmer (k, vcf_loc, ref_loc, phase_block_required):
         if ((len(kmer_first_half) + len(kmer_second_half_ref) + len(ref)) == k) and ((len(kmer_first_half) + len(kmer_second_half_alt) + len(alt)) == k):
             ref_kmer = "{}{}{}".format(kmer_first_half, ref, kmer_second_half_ref).lower()
             alt_kmer = "{}{}{}".format(kmer_first_half, alt, kmer_second_half_alt).lower()
-            
-            phase_block_numbers.append(phase_block)
             haplotype_alleles_list.append(record.samples[0]["GT"])
             ref_alt_kmer_list.append((ref_kmer, alt_kmer))
             ref_location_list.append((record.CHROM, record.POS))
-    return ref_alt_kmer_list, haplotype_alleles_list, ref_location_list, phase_block_numbers
+    # find in parent stuff outside variant reader
+    for (index, ref_alt) in enumerate(ref_alt_kmer_list):
+        ref_kmer, alt_kmer = ref_alt
+        print(haplotype_alleles_list[index])
+        # Hera1 search
+        print("Searching for hera1 REF")
+        (hera1_ref_result, hera1_ref_flags) = search_for_kstring_in_intermediate(TABEX_LOC, HERA1_REF_LOC, ref_kmer)
+    # calculate all
+
+    return 
 
 def look_for_stieg_ref(thread_index, k_string_vec, haplotype_allele_vec, ref_loc_vec, phase_blocks, tabex_loc, intermediate_loc, hera_ref, stieg_ref):
     for k_index, k_string in enumerate(k_string_vec):
@@ -262,6 +267,7 @@ def search_for_kstring_in_intermediate(tabex_loc, ref_loc, k_string):
     command_to_run = "{} {} {}".format(tabex_loc, ref_loc, k_string)
     output = os.popen(command_to_run).read()
     split_lines = output.splitlines()
+    print(output)
     for (index, split_line) in enumerate(split_lines):
         if split_line.find("Not found") == -1:
             exists = True
