@@ -213,7 +213,7 @@ def find_which_parent_contain_kstring(thread_index, k_string_vec, haplotype_alle
                     if haplotype_allele_vec[global_i][6] == "1":
                         haplotype_ref_alt[3] = 1
                     #print(haplotype_ref_alt, haplotype_allele_vec[global_i])]
-                print("processing {} {} {} {}".format(hera_ref_result[local_i], stieg_alt_result[local_i], hera_alt_result[local_i], stieg_ref_result[local_i]))
+                #print("processing {} {} {} {}".format(hera_ref_result[local_i], stieg_alt_result[local_i], hera_alt_result[local_i], stieg_ref_result[local_i]))
                 if hera_ref_result[local_i]:
                     # increment the hera ref haplotypes
                     if haplotype_ref_alt[0] == 0:
@@ -274,7 +274,10 @@ def search_for_kstring_in_intermediate(tabex_loc, ref_loc, k_string):
         else:
             exists = False
         if index >= 1:
-            if (split_line[27] != "1") and (exists == True):
+            count = split_line.split(" ")[1]
+            print(count)
+            if (count != "1") and (exists == True):
+                print(count, "FLAGGED")
                 array_for_flags.append(True)
             else:
                 array_for_flags.append(False)
