@@ -4,6 +4,13 @@ import string
 import pyfaidx
 from multiprocessing import Process, Value, Array
 
+def look_for_stieg_ref(thread_index, k_string_vec, haplotype_allele_vec, ref_loc_vec, phase_blocks, tabex_loc, intermediate_loc, hera_ref, stieg_ref):
+    for k_index, k_string in enumerate(k_string_vec):
+        ref_k_string, alt_k_string = k_string
+        stieg_ref_result, stieg_ref_flags = search_for_kstring_in_intermediate(tabex_loc, stieg_ref, k_string)
+        print(stieg_ref)
+    return
+
 def thread_runner_kmer_search(number_of_threads, k_string_vec, haplotype_allele_vec, ref_loc_vec, phase_blocks, TABEX_LOC, INTERMEDIATE_LOC, HERA_UNIQUE_LOC, STIEG_UNIQUE_LOC):
     # initialize variables
     threads = [None] * number_of_threads
