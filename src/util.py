@@ -14,6 +14,7 @@ def find_specific_phaseblock_kmer (k, vcf_loc, ref_loc, phase_block_required):
     ref_alt_kmer_list = []
     haplotype_alleles_list = []
     ref_location_list = []
+    found_bool = False
     variant_reader = vcf.Reader(filename = vcf_loc)
     ref_fasta = pyfaidx.Fasta(ref_loc)
     print("Gathering {}-mers from {} vcf and {} ref for phase block {}".format(k, vcf_loc, ref_loc, phase_block_required))
@@ -31,8 +32,11 @@ def find_specific_phaseblock_kmer (k, vcf_loc, ref_loc, phase_block_required):
             #print(phase_block)
             if phase_block != phase_block_required:
                 continue
+                if found_bool == True: # encountered different block after found
+                    break
             else:
                 print("FOUND")
+                found_bool = True
         except:
             continue
         # processing the required phase block
