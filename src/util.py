@@ -80,6 +80,8 @@ def find_specific_phaseblock_kmer (k, vcf_loc, ref_loc, phase_block_required):
         (hera2_alt_result) = search_for_kstring_in_intermediate(TABEX_LOC, HERA2_REF_LOC, alt_kmer)
         (stieg1_alt_result) = search_for_kstring_in_intermediate(TABEX_LOC, STIEG1_REF_LOC, alt_kmer)
         (stieg2_alt_result) = search_for_kstring_in_intermediate(TABEX_LOC, STIEG2_REF_LOC, alt_kmer)
+        if not (((hera1_ref_result[0] or hera2_ref_result[0]) and (stieg1_alt_result[0] or stieg2_alt_result[0])) or ((hera1_alt_result[0] or hera2_alt_result[0]) and (stieg1_ref_result[0] or stieg2_ref_result[0]))):
+            continue
         if haplotype_ref_alt[0] == 0:
             if (hera1_ref_result[0] or hera2_ref_result[0]):
                 haplotype1_stuff.append((ref_location_list[index], 1, 0, 0, 0))
