@@ -50,21 +50,56 @@ def find_specific_phaseblock_kmer (k, vcf_loc, ref_loc, phase_block_required):
             haplotype_alleles_list.append(record.samples[0]["GT"])
             ref_alt_kmer_list.append((ref_kmer, alt_kmer))
             ref_location_list.append((record.CHROM, record.POS))
-    # find in parent stuff outside variant reader
+    # find in parent stuff outside variant reader haplotype 1
+    haplotype1_stuff = []
     for (index, ref_alt) in enumerate(ref_alt_kmer_list):
         ref_kmer, alt_kmer = ref_alt
         print(haplotype_alleles_list[index])
-        # Hera1 search
-        print("Searching for hera1 REF")
-        (hera1_ref_result, hera1_ref_flags) = search_for_kstring_in_intermediate(TABEX_LOC, HERA1_REF_LOC, ref_kmer)
-    # calculate all
-
-    return 
+        if len(haplotype_alleles_list[index]) != 7:
+            continue
+        haplotype_ref_alt = [0, 0, 0, 0]
+        if haplotype_alleles_list[index][0] == "1":
+            haplotype_ref_alt[0] = 1
+        if haplotype_alleles_list[index][2] == "1":
+            haplotype_ref_alt[1] = 1
+        if haplotype_alleles_list[index][4] == "1":
+            haplotype_ref_alt[2] = 1
+        if haplotype_alleles_list[index][6] == "1":
+            haplotype_ref_alt[3] = 1
+        print("Searching for REF")
+        (hera1_ref_result) = search_for_kstring_in_intermediate(TABEX_LOC, HERA1_REF_LOC, ref_kmer)
+        (hera2_ref_result) = search_for_kstring_in_intermediate(TABEX_LOC, HERA2_REF_LOC, ref_kmer)
+        (stieg1_ref_result) = search_for_kstring_in_intermediate(TABEX_LOC, STIEG1_REF_LOC, ref_kmer)
+        (stieg2_ref_result) = search_for_kstring_in_intermediate(TABEX_LOC, STIEG2_REF_LOC, ref_kmer)
+        print("Searching for ALT")
+        (hera1_alt_result) = search_for_kstring_in_intermediate(TABEX_LOC, HERA1_REF_LOC, alt_kmer)
+        (hera2_alt_result) = search_for_kstring_in_intermediate(TABEX_LOC, HERA2_REF_LOC, alt_kmer)
+        (stieg1_alt_result) = search_for_kstring_in_intermediate(TABEX_LOC, STIEG1_REF_LOC, alt_kmer)
+        (stieg2_alt_result) = search_for_kstring_in_intermediate(TABEX_LOC, STIEG2_REF_LOC, alt_kmer)
+        if ((hera1_ref_result[0] or hera2_ref_result[0]) and (stieg1_alt_result[0] or stieg2_alt_result)):
+            if haplotype_ref_alt[0] == 0:
+                haplotype1_stuff.append((ref_location_list[index], 1, 0, 0, 0))
+                print((ref_location_list[index], 1, 0, 0, 0))
+            if haplotype_ref_alt[0] == 1:
+                haplotype1_stuff.append((ref_location_list[index], 0, 0, 0, 1))
+                print((ref_location_list[index], 0, 0, 0, 1))
+        if ((hera1_alt_result[0] or hera2_alt_result[0]) and (stieg1_ref_result[0] or stieg2_ref_result)):
+            if haplotype_ref_alt[0] == 0:
+                haplotype1_stuff.append((ref_location_list[index], 0, 0, 1, 0))
+                print((ref_location_list[index], 0, 0, 1, 0))
+            if haplotype_ref_alt[0] == 1:
+                haplotype1_stuff.append((ref_location_list[index], 0, 1, 0, 0))
+                print((ref_location_list[index], 0, 1, 0, 0))
+    write_path = "./intermediate/haplot1_result_block_{}.txt".format(phase_block_required)
+    with open(write_path, 'a') as fw:
+        for entry in haplotype1_stuff:
+            fw.write("{}\n".format(entry))
+    return
 
 def look_for_stieg_ref(thread_index, k_string_vec, haplotype_allele_vec, ref_loc_vec, phase_blocks, tabex_loc, intermediate_loc, hera_ref, stieg_ref):
     for k_index, k_string in enumerate(k_string_vec):
         ref_k_string, alt_k_string = k_string
-        stieg_ref_result, stieg_ref_flags = search_for_kstring_in_intermediate(tabex_loc, stieg_ref, k_string)
+        stieg_ref_result = search_for_kstring_in_intermediate(tabex_loc, stieg_ref, k_string)
         print(stieg_ref)
     return
 
@@ -171,10 +206,10 @@ def find_which_parent_contain_kstring(thread_index, k_string_vec, haplotype_alle
         if k_index % 1000 == 0:
             print("Thread {} progress {}%".format(thread_index, 100 * k_index / len(k_string_vec)))
         if (k_index % 20 == 0) and (k_index != 0):
-            hera_ref_result, hera_ref_flags = search_for_kstring_in_intermediate(tabex_loc, hera_ref, concancated_ref_k_string)
-            stieg_ref_result, stieg_ref_flags = search_for_kstring_in_intermediate(tabex_loc, stieg_ref, concancated_ref_k_string)
-            hera_alt_result, hera_alt_flags = search_for_kstring_in_intermediate(tabex_loc, hera_ref, concancated_alt_k_string)
-            stieg_alt_result, stieg_alt_flags = search_for_kstring_in_intermediate(tabex_loc, stieg_ref, concancated_alt_k_string)
+            hera_ref_result = search_for_kstring_in_intermediate(tabex_loc, hera_ref, concancated_ref_k_string)
+            stieg_ref_result = search_for_kstring_in_intermediate(tabex_loc, stieg_ref, concancated_ref_k_string)
+            hera_alt_result = search_for_kstring_in_intermediate(tabex_loc, hera_ref, concancated_alt_k_string)
+            stieg_alt_result = search_for_kstring_in_intermediate(tabex_loc, stieg_ref, concancated_alt_k_string)
             concancated_ref_k_string = ""
             concancated_alt_k_string = ""
             # process the stuff put in appropriate phase block and haplotype (increment)
@@ -192,11 +227,7 @@ def find_which_parent_contain_kstring(thread_index, k_string_vec, haplotype_alle
                     with open(write_path, 'a') as fw:
                         fw.write("{}\n".format(final_result_blocks[-1]))
                     final_result_blocks.append((phase_blocks[global_i], [0,0,0,0], [0,0,0,0], [0,0,0,0], [0,0,0,0]))
-                # continue if not satisfying any of theese conditions # flag exclusive not phased
-                if hera_ref_flags[local_i] or hera_alt_flags[local_i] or stieg_alt_flags[local_i] or stieg_ref_flags[local_i]:
-                    local_i += 1
-                    continue
-                if not (hera_ref_result[local_i]and stieg_alt_result[local_i]) or (hera_alt_result[local_i] and stieg_ref_result[local_i]):
+                if not ((hera_ref_result[local_i] and stieg_alt_result[local_i]) or (hera_alt_result[local_i] and stieg_ref_result[local_i])):
                     local_i += 1
                     continue
                 if len(haplotype_allele_vec[global_i]) != 7:
@@ -263,23 +294,16 @@ def find_which_parent_contain_kstring(thread_index, k_string_vec, haplotype_alle
 
 def search_for_kstring_in_intermediate(tabex_loc, ref_loc, k_string):
     array_for_results = []
-    array_for_flags = []
     command_to_run = "{} {} {}".format(tabex_loc, ref_loc, k_string)
     output = os.popen(command_to_run).read()
     split_lines = output.splitlines()
     print(output)
     for (index, split_line) in enumerate(split_lines):
-        if split_line.find("Not found") == -1:
+        count = split_line.split()[1]
+        if (count != "1"):
             exists = True
         else:
             exists = False
         if index >= 1:
-            count = split_line.split(" ")[1]
-            print(count)
-            if (count != "1") and (exists == True):
-                print(count, "FLAGGED")
-                array_for_flags.append(True)
-            else:
-                array_for_flags.append(False)
             array_for_results.append(exists)
-    return array_for_results, array_for_flags
+    return array_for_results
