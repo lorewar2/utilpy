@@ -31,9 +31,9 @@ def find_specific_phaseblock_kmer (k, vcf_loc, ref_loc, phase_block_required):
             phase_block = record.samples[0]["PS"]
             #print(phase_block)
             if phase_block != phase_block_required:
-                continue
                 if found_bool == True: # encountered different block after found
                     break
+                continue
             else:
                 print("FOUND")
                 found_bool = True
