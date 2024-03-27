@@ -80,20 +80,20 @@ def find_specific_phaseblock_kmer (k, vcf_loc, ref_loc, phase_block_required):
         (hera2_alt_result) = search_for_kstring_in_intermediate(TABEX_LOC, HERA2_REF_LOC, alt_kmer)
         (stieg1_alt_result) = search_for_kstring_in_intermediate(TABEX_LOC, STIEG1_REF_LOC, alt_kmer)
         (stieg2_alt_result) = search_for_kstring_in_intermediate(TABEX_LOC, STIEG2_REF_LOC, alt_kmer)
-        if ((hera1_ref_result[0] or hera2_ref_result[0]) and (stieg1_alt_result[0] or stieg2_alt_result)):
-            if haplotype_ref_alt[0] == 0:
+        if haplotype_ref_alt[0] == 0:
+            if (hera1_ref_result[0] or hera2_ref_result[0]):
                 haplotype1_stuff.append((ref_location_list[index], 1, 0, 0, 0))
                 print((ref_location_list[index], 1, 0, 0, 0))
-            if haplotype_ref_alt[0] == 1:
-                haplotype1_stuff.append((ref_location_list[index], 0, 0, 0, 1))
-                print((ref_location_list[index], 0, 0, 0, 1))
-        if ((hera1_alt_result[0] or hera2_alt_result[0]) and (stieg1_ref_result[0] or stieg2_ref_result)):
-            if haplotype_ref_alt[0] == 0:
+            elif (stieg1_ref_result[0] or stieg2_ref_result[0]):
                 haplotype1_stuff.append((ref_location_list[index], 0, 0, 1, 0))
                 print((ref_location_list[index], 0, 0, 1, 0))
-            if haplotype_ref_alt[0] == 1:
+        if haplotype_ref_alt[0] == 1:
+            if (hera1_alt_result[0] or hera2_alt_result[0]):
                 haplotype1_stuff.append((ref_location_list[index], 0, 1, 0, 0))
                 print((ref_location_list[index], 0, 1, 0, 0))
+            elif (stieg1_alt_result[0] or stieg2_alt_result[0]):
+                haplotype1_stuff.append((ref_location_list[index], 0, 0, 0, 1))
+                print((ref_location_list[index], 0, 0, 0, 1))
     write_path = "./intermediate/haplot1_result_block_{}.txt".format(phase_block_required)
     with open(write_path, 'a') as fw:
         for entry in haplotype1_stuff:
@@ -301,7 +301,7 @@ def search_for_kstring_in_intermediate(tabex_loc, ref_loc, k_string):
     command_to_run = "{} {} {}".format(tabex_loc, ref_loc, k_string)
     output = os.popen(command_to_run).read()
     split_lines = output.splitlines()
-    print(output)
+    #print(output)
     for (index, split_line) in enumerate(split_lines):
         count = split_line.split()[1]
         if (count != "1"):
