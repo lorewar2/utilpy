@@ -10,6 +10,98 @@ HERA2_REF_LOC = "intermediate/solTubHeraHap2.fa.ktab"
 STIEG1_REF_LOC = "intermediate/solTubStiegHap1.fa.ktab"
 STIEG2_REF_LOC = "intermediate/solTubStiegHap2.fa.ktab"
 
+def find_specific_phaseblock_kmer (k, vcf_loc, ref_loc, phase_block_required, unique_hera, unique_stieg):
+    ref_alt_kmer_list = []
+    haplotype_alleles_list = []
+    ref_location_list = []
+    found_bool = False
+    variant_reader = vcf.Reader(filename = vcf_loc)
+    ref_fasta = pyfaidx.Fasta(ref_loc)
+    print("Gathering {}-mers from {} vcf and {} ref for phase block {}".format(k, vcf_loc, ref_loc, phase_block_required))
+    if k % 2 == 0:
+        k_first_half_length = k // 2
+        k_second_half_length = k // 2
+    else:
+        k_first_half_length = (k // 2) + 1
+        k_second_half_length = k // 2
+    for index, record in enumerate(variant_reader):
+        if index % 10000 == 0:
+            print("Searching progress {:.2f}%".format(100 * variant_reader.read_bytes() / variant_reader.total_bytes()))
+        try:
+            phase_block = record.samples[0]["PS"]
+            #print(phase_block)
+            if phase_block != phase_block_required:
+                if found_bool == True: # encountered different block after found
+                    break
+                continue
+            else:
+                print("FOUND")
+                found_bool = True
+        except:
+            continue
+        # processing the required phase block
+        # get all the info
+        if len(record.alleles) != 3:
+            continue
+        ref = record.alleles[0]
+        alt = record.alleles[1]
+        kmer_first_half = ref_fasta[record.CHROM][record.POS - k_first_half_length - 1 : record.POS - 1]
+        kmer_second_half_ref = ref_fasta[record.CHROM][record.POS - 1 + len(ref) : record.POS + k_second_half_length - 1]
+        kmer_second_half_alt = ref_fasta[record.CHROM][record.POS - 1 + len(ref) : record.POS + len(ref) - len(alt) + k_second_half_length - 1]
+        if ((len(kmer_first_half) + len(kmer_second_half_ref) + len(ref)) == k) and ((len(kmer_first_half) + len(kmer_second_half_alt) + len(alt)) == k):
+            ref_kmer = "{}{}{}".format(kmer_first_half, ref, kmer_second_half_ref).lower()
+            alt_kmer = "{}{}{}".format(kmer_first_half, alt, kmer_second_half_alt).lower()
+            haplotype_alleles_list.append(record.samples[0]["GT"])
+            ref_alt_kmer_list.append((ref_kmer, alt_kmer))
+            ref_location_list.append((record.CHROM, record.POS))
+    # find in parent stuff outside variant reader haplotype 1
+    haplotype1_stuff = []
+    for (index, ref_alt) in enumerate(ref_alt_kmer_list):
+        ref_kmer, alt_kmer = ref_alt
+        print(haplotype_alleles_list[index])
+        if len(haplotype_alleles_list[index]) != 7:
+            continue
+        haplotype_ref_alt = [0, 0, 0, 0]
+        if haplotype_alleles_list[index][0] == "1":
+            haplotype_ref_alt[0] = 1
+        if haplotype_alleles_list[index][2] == "1":
+            haplotype_ref_alt[1] = 1
+        if haplotype_alleles_list[index][4] == "1":
+            haplotype_ref_alt[2] = 1
+        if haplotype_alleles_list[index][6] == "1":
+            haplotype_ref_alt[3] = 1
+        print("Searching for REF")
+        (hera_ref_result) = search_for_kstring_in_intermediate(TABEX_LOC, unique_hera, ref_kmer)
+        (stieg_ref_result) = search_for_kstring_in_intermediate(TABEX_LOC, unique_stieg, ref_kmer)
+        print("Searching for ALT")
+        (hera_alt_result) = search_for_kstring_in_intermediate(TABEX_LOC, unique_hera, alt_kmer)
+        (stieg_alt_result) = search_for_kstring_in_intermediate(TABEX_LOC, unique_stieg, alt_kmer)
+        # if not hera stieg together skip
+        if not (((hera_ref_result[0]) and (stieg_alt_result[0])) or ((hera_alt_result[0]) and (stieg_ref_result[0]))):
+            continue
+        # if something is not unique skip
+        if (hera_ref_result[0] == 2) or (hera_alt_result[0] == 2) or (stieg_ref_result[0] == 2) or (stieg_alt_result[0] == 2):
+            continue
+        if haplotype_ref_alt[0] == 0:
+            if ((hera_ref_result[0]) and not (stieg_ref_result[0])):
+                haplotype1_stuff.append((ref_location_list[index], 1, 0, 0, 0))
+                print((ref_location_list[index], 1, 0, 0, 0))
+            elif ((stieg_ref_result[0]) and not (hera_ref_result[0])):
+                haplotype1_stuff.append((ref_location_list[index], 0, 0, 1, 0))
+                print((ref_location_list[index], 0, 0, 1, 0))
+        if haplotype_ref_alt[0] == 1:
+            if ((hera_alt_result[0]) and not (stieg_alt_result[0])):
+                haplotype1_stuff.append((ref_location_list[index], 0, 1, 0, 0))
+                print((ref_location_list[index], 0, 1, 0, 0))
+            elif ((stieg_alt_result[0]) and not (hera_alt_result[0])):
+                haplotype1_stuff.append((ref_location_list[index], 0, 0, 0, 1))
+                print((ref_location_list[index], 0, 0, 0, 1))
+    write_path = "./intermediate/haplot1_result_block_{}.txt".format(phase_block_required)
+    with open(write_path, 'a') as fw:
+        for entry in haplotype1_stuff:
+            fw.write("{}\n".format(entry))
+    return
+
 def find_which_parent_contain_kstring(thread_index, k_string_vec, haplotype_allele_vec, ref_loc_vec, phase_blocks, tabex_loc, intermediate_loc, hera_ref, stieg_ref):
     final_result_blocks = [(phase_blocks[0], [0,0,0,0], [0,0,0,0], [0,0,0,0], [0,0,0,0])] # one block is phase block, haplotype counts (hera ref, hera alt, stieg ref, stieg alt)
     concancated_ref_k_string = ""
@@ -136,102 +228,6 @@ def unique_kmers_for_parent_from_intermediates_from_reads(logex_k_loc, intermedi
     stieg_output_file = "{}stieg_unique.fa".format(intermediate_loc)
     command = "{} -T64 '{} = B - A' {}".format(logex_k_loc, stieg_output_file, input_files)
     print(os.popen(command).read())
-    return
-
-def find_specific_phaseblock_kmer (k, vcf_loc, ref_loc, phase_block_required):
-    ref_alt_kmer_list = []
-    haplotype_alleles_list = []
-    ref_location_list = []
-    found_bool = False
-    variant_reader = vcf.Reader(filename = vcf_loc)
-    ref_fasta = pyfaidx.Fasta(ref_loc)
-    print("Gathering {}-mers from {} vcf and {} ref for phase block {}".format(k, vcf_loc, ref_loc, phase_block_required))
-    if k % 2 == 0:
-        k_first_half_length = k // 2
-        k_second_half_length = k // 2
-    else:
-        k_first_half_length = (k // 2) + 1
-        k_second_half_length = k // 2
-    for index, record in enumerate(variant_reader):
-        if index % 10000 == 0:
-            print("Searching progress {:.2f}%".format(100 * variant_reader.read_bytes() / variant_reader.total_bytes()))
-        try:
-            phase_block = record.samples[0]["PS"]
-            #print(phase_block)
-            if phase_block != phase_block_required:
-                if found_bool == True: # encountered different block after found
-                    break
-                continue
-            else:
-                print("FOUND")
-                found_bool = True
-        except:
-            continue
-        # processing the required phase block
-        # get all the info
-        if len(record.alleles) != 3:
-            continue
-        ref = record.alleles[0]
-        alt = record.alleles[1]
-        kmer_first_half = ref_fasta[record.CHROM][record.POS - k_first_half_length - 1 : record.POS - 1]
-        kmer_second_half_ref = ref_fasta[record.CHROM][record.POS - 1 + len(ref) : record.POS + k_second_half_length - 1]
-        kmer_second_half_alt = ref_fasta[record.CHROM][record.POS - 1 + len(ref) : record.POS + len(ref) - len(alt) + k_second_half_length - 1]
-        if ((len(kmer_first_half) + len(kmer_second_half_ref) + len(ref)) == k) and ((len(kmer_first_half) + len(kmer_second_half_alt) + len(alt)) == k):
-            ref_kmer = "{}{}{}".format(kmer_first_half, ref, kmer_second_half_ref).lower()
-            alt_kmer = "{}{}{}".format(kmer_first_half, alt, kmer_second_half_alt).lower()
-            haplotype_alleles_list.append(record.samples[0]["GT"])
-            ref_alt_kmer_list.append((ref_kmer, alt_kmer))
-            ref_location_list.append((record.CHROM, record.POS))
-    # find in parent stuff outside variant reader haplotype 1
-    haplotype1_stuff = []
-    for (index, ref_alt) in enumerate(ref_alt_kmer_list):
-        ref_kmer, alt_kmer = ref_alt
-        print(haplotype_alleles_list[index])
-        if len(haplotype_alleles_list[index]) != 7:
-            continue
-        haplotype_ref_alt = [0, 0, 0, 0]
-        if haplotype_alleles_list[index][0] == "1":
-            haplotype_ref_alt[0] = 1
-        if haplotype_alleles_list[index][2] == "1":
-            haplotype_ref_alt[1] = 1
-        if haplotype_alleles_list[index][4] == "1":
-            haplotype_ref_alt[2] = 1
-        if haplotype_alleles_list[index][6] == "1":
-            haplotype_ref_alt[3] = 1
-        print("Searching for REF")
-        (hera1_ref_result) = search_for_kstring_in_intermediate(TABEX_LOC, HERA1_REF_LOC, ref_kmer)
-        (hera2_ref_result) = search_for_kstring_in_intermediate(TABEX_LOC, HERA2_REF_LOC, ref_kmer)
-        (stieg1_ref_result) = search_for_kstring_in_intermediate(TABEX_LOC, STIEG1_REF_LOC, ref_kmer)
-        (stieg2_ref_result) = search_for_kstring_in_intermediate(TABEX_LOC, STIEG2_REF_LOC, ref_kmer)
-        print("Searching for ALT")
-        (hera1_alt_result) = search_for_kstring_in_intermediate(TABEX_LOC, HERA1_REF_LOC, alt_kmer)
-        (hera2_alt_result) = search_for_kstring_in_intermediate(TABEX_LOC, HERA2_REF_LOC, alt_kmer)
-        (stieg1_alt_result) = search_for_kstring_in_intermediate(TABEX_LOC, STIEG1_REF_LOC, alt_kmer)
-        (stieg2_alt_result) = search_for_kstring_in_intermediate(TABEX_LOC, STIEG2_REF_LOC, alt_kmer)
-        # if not hera stieg together skip
-        #if not (((hera1_ref_result[0] or hera2_ref_result[0]) and (stieg1_alt_result[0] or stieg2_alt_result[0])) or ((hera1_alt_result[0] or hera2_alt_result[0]) and (stieg1_ref_result[0] or stieg2_ref_result[0]))):
-        #    continue
-        # if something is not unique skip
-        if (hera1_ref_result[0] == 2) or (hera2_ref_result[0] == 2) or (hera1_alt_result[0] == 2) or (hera2_alt_result[0] == 2) or (stieg1_ref_result[0] == 2) or  (stieg2_ref_result[0] == 2) or  (stieg1_alt_result[0] == 2) or  (stieg2_alt_result[0] == 2):
-            continue
-        if haplotype_ref_alt[0] == 0:
-            if ((hera1_ref_result[0] or hera2_ref_result[0]) and not (stieg1_ref_result[0] or stieg2_ref_result[0])):
-                haplotype1_stuff.append((ref_location_list[index], 1, 0, 0, 0))
-                print((ref_location_list[index], 1, 0, 0, 0))
-            elif ((stieg1_ref_result[0] or stieg2_ref_result[0]) and not (hera1_ref_result[0] or hera2_ref_result[0])):
-                haplotype1_stuff.append((ref_location_list[index], 0, 0, 1, 0))
-                print((ref_location_list[index], 0, 0, 1, 0))
-        if haplotype_ref_alt[0] == 1:
-            if ((hera1_alt_result[0] or hera2_alt_result[0]) and not (stieg1_alt_result[0] or stieg2_alt_result[0])):
-                haplotype1_stuff.append((ref_location_list[index], 0, 1, 0, 0))
-                print((ref_location_list[index], 0, 1, 0, 0))
-            elif ((stieg1_alt_result[0] or stieg2_alt_result[0]) and not (hera1_alt_result[0] or hera2_alt_result[0])):
-                haplotype1_stuff.append((ref_location_list[index], 0, 0, 0, 1))
-                print((ref_location_list[index], 0, 0, 0, 1))
-    write_path = "./intermediate/haplot1_result_block_{}.txt".format(phase_block_required)
-    with open(write_path, 'a') as fw:
-        for entry in haplotype1_stuff:
-            fw.write("{}\n".format(entry))
     return
 
 def thread_runner_kmer_search(number_of_threads, k_string_vec, haplotype_allele_vec, ref_loc_vec, phase_blocks, TABEX_LOC, INTERMEDIATE_LOC, HERA_UNIQUE_LOC, STIEG_UNIQUE_LOC):
