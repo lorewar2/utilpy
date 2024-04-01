@@ -44,12 +44,13 @@ def find_which_parent_contain_kstring(thread_index, k_string_vec, haplotype_alle
                         fw.write("{}\n".format(final_result_blocks[-1]))
                     final_result_blocks.append((phase_blocks[global_i], [0,0,0,0], [0,0,0,0], [0,0,0,0], [0,0,0,0]))
                 # only if both hera and stieg present
-                if not ((hera_ref_result[local_i] and stieg_alt_result[local_i]) or (hera_alt_result[local_i] and stieg_ref_result[local_i])):
-                    local_i += 1
-                    continue
+                #if not ((hera_ref_result[local_i] and stieg_alt_result[local_i]) or (hera_alt_result[local_i] and stieg_ref_result[local_i])):
+                #    local_i += 1
+                #    continue
                 # only if all are unique
-                if ((hera_ref_result[local_i] != 2) and (stieg_alt_result[local_i] != 2) and (hera_alt_result[local_i] != 2) and (stieg_ref_result[local_i] != 2)):
-                    continue
+                #if ((hera_ref_result[local_i] == 2) or (stieg_alt_result[local_i] == 2) or (hera_alt_result[local_i] == 2) or (stieg_ref_result[local_i] == 2)):
+                #    local_i += 1
+                #    continue
                 # only if processed correctly by the phasstphase
                 if len(haplotype_allele_vec[global_i]) != 7:
                     local_i += 1
@@ -66,7 +67,7 @@ def find_which_parent_contain_kstring(thread_index, k_string_vec, haplotype_alle
                         haplotype_ref_alt[3] = 1
                     #print(haplotype_ref_alt, haplotype_allele_vec[global_i])]
                 print("processing {} {} {} {}".format(hera_ref_result[local_i], stieg_alt_result[local_i], hera_alt_result[local_i], stieg_ref_result[local_i]))
-                if hera_ref_result[local_i]:
+                if (hera_ref_result[local_i] == 1) and (stieg_ref_result[local_i] == 0):
                     # increment the hera ref haplotypes
                     if haplotype_ref_alt[0] == 0:
                         final_result_blocks[-1][1][0] += 1
@@ -76,7 +77,7 @@ def find_which_parent_contain_kstring(thread_index, k_string_vec, haplotype_alle
                         final_result_blocks[-1][3][0] += 1
                     if haplotype_ref_alt[3] == 0:
                         final_result_blocks[-1][4][0] += 1
-                if hera_alt_result[local_i]:
+                if (hera_alt_result[local_i] == 1) and (stieg_alt_result[local_i] == 0):
                     # increment the hera alt haplotypes
                     if haplotype_ref_alt[0] == 1:
                         final_result_blocks[-1][1][1] += 1
@@ -86,7 +87,7 @@ def find_which_parent_contain_kstring(thread_index, k_string_vec, haplotype_alle
                         final_result_blocks[-1][3][1] += 1
                     if haplotype_ref_alt[3] == 1:
                         final_result_blocks[-1][4][1] += 1
-                if stieg_ref_result[local_i]:
+                if (stieg_ref_result[local_i] == 1) and (hera_ref_result[local_i] == 0):
                     # increment the stieg ref haplotypes
                     if haplotype_ref_alt[0] == 0:
                         final_result_blocks[-1][1][2] += 1
@@ -96,7 +97,7 @@ def find_which_parent_contain_kstring(thread_index, k_string_vec, haplotype_alle
                         final_result_blocks[-1][3][2] += 1
                     if haplotype_ref_alt[3] == 0:
                         final_result_blocks[-1][4][2] += 1
-                if stieg_alt_result[local_i]:
+                if (stieg_alt_result[local_i] == 1) and (hera_alt_result[local_i] == 0):
                     # increment the stieg alt haplotypes
                     if haplotype_ref_alt[0] == 1:
                         final_result_blocks[-1][1][3] += 1
@@ -232,7 +233,7 @@ def find_specific_phaseblock_kmer (k, vcf_loc, ref_loc, phase_block_required):
         for entry in haplotype1_stuff:
             fw.write("{}\n".format(entry))
     return
-    
+
 def thread_runner_kmer_search(number_of_threads, k_string_vec, haplotype_allele_vec, ref_loc_vec, phase_blocks, TABEX_LOC, INTERMEDIATE_LOC, HERA_UNIQUE_LOC, STIEG_UNIQUE_LOC):
     # initialize variables
     threads = [None] * number_of_threads
