@@ -22,25 +22,14 @@ def run_fastk_make_intermediate_files_from_reads(k, fast_k_loc, intermediate_loc
     return
 
 # make unique hera and stieg tabx files
-def unique_kmers_for_parent_from_intermediates_reads(logex_k_loc, intermediate_loc, parents):
-    # concancate two heras
-    hera_concat_file = "{}hera_concat.fa".format(intermediate_loc)
-    input_files = "{}{}.ktab {}{}.ktab".format(intermediate_loc, parents[0].split("/")[-1], intermediate_loc, parents[1].split("/")[-1])
-    command = "{} -T64 '{} = A |. B' {}".format(logex_k_loc, hera_concat_file, input_files)
-    print(os.popen(command).read())
-    # concancate two steig
-    stieg_concat_file = "{}stieg_concat.fa".format(intermediate_loc)
-    input_files = "{}{}.ktab {}{}.ktab".format(intermediate_loc, parents[2].split("/")[-1], intermediate_loc, parents[3].split("/")[-1])
-    command = "{} -T64 '{} = A |. B' {}".format(logex_k_loc, stieg_concat_file, input_files)
-    print(os.popen(command).read())
+def unique_kmers_for_parent_from_intermediates_from_reads(logex_k_loc, intermediate_loc, hera_read, steig_read):
     # make them unique A - B hera
     hera_output_file = "{}hera_unique.fa".format(intermediate_loc)
-    input_files = "{}.ktab {}.ktab".format(hera_concat_file, stieg_concat_file)
+    input_files = "{}{}.ktab {}.ktab".format(intermediate_loc, hera_read.split("/")[-1],intermediate_loc, steig_read.split("/")[-1])
     command = "{} -T64 '{} = A - B' {}".format(logex_k_loc, hera_output_file, input_files)
     print(os.popen(command).read())
     # make them unique B - A stieg
     stieg_output_file = "{}stieg_unique.fa".format(intermediate_loc)
-    input_files = "{}.ktab {}.ktab".format(hera_concat_file, stieg_concat_file)
     command = "{} -T64 '{} = B - A' {}".format(logex_k_loc, stieg_output_file, input_files)
     print(os.popen(command).read())
     return
