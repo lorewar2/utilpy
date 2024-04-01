@@ -115,20 +115,24 @@ def find_specific_phaseblock_kmer (k, vcf_loc, ref_loc, phase_block_required):
         (hera2_alt_result) = search_for_kstring_in_intermediate(TABEX_LOC, HERA2_REF_LOC, alt_kmer)
         (stieg1_alt_result) = search_for_kstring_in_intermediate(TABEX_LOC, STIEG1_REF_LOC, alt_kmer)
         (stieg2_alt_result) = search_for_kstring_in_intermediate(TABEX_LOC, STIEG2_REF_LOC, alt_kmer)
-        if not (((hera1_ref_result[0] or hera2_ref_result[0]) and (stieg1_alt_result[0] or stieg2_alt_result[0])) or ((hera1_alt_result[0] or hera2_alt_result[0]) and (stieg1_ref_result[0] or stieg2_ref_result[0]))):
+        # if not hera stieg together skip
+        #if not (((hera1_ref_result[0] or hera2_ref_result[0]) and (stieg1_alt_result[0] or stieg2_alt_result[0])) or ((hera1_alt_result[0] or hera2_alt_result[0]) and (stieg1_ref_result[0] or stieg2_ref_result[0]))):
+        #    continue
+        # if something is not unique skip
+        if (hera1_ref_result[0] == 2) or (hera2_ref_result[0] == 2) or (hera1_alt_result[0] == 2) or (hera2_alt_result[0] == 2) or (stieg1_ref_result[0] == 2) or  (stieg2_ref_result[0] == 2) or  (stieg1_alt_result[0] == 2) or  (stieg2_alt_result[0] == 2):
             continue
         if haplotype_ref_alt[0] == 0:
-            if (hera1_ref_result[0] or hera2_ref_result[0]):
+            if ((hera1_ref_result[0] or hera2_ref_result[0]) and not (stieg1_ref_result[0] or stieg2_ref_result[0])):
                 haplotype1_stuff.append((ref_location_list[index], 1, 0, 0, 0))
                 print((ref_location_list[index], 1, 0, 0, 0))
-            elif (stieg1_ref_result[0] or stieg2_ref_result[0]):
+            elif ((stieg1_ref_result[0] or stieg2_ref_result[0]) and not (hera1_ref_result[0] or hera2_ref_result[0])):
                 haplotype1_stuff.append((ref_location_list[index], 0, 0, 1, 0))
                 print((ref_location_list[index], 0, 0, 1, 0))
         if haplotype_ref_alt[0] == 1:
-            if (hera1_alt_result[0] or hera2_alt_result[0]):
+            if ((hera1_alt_result[0] or hera2_alt_result[0]) and not (stieg1_alt_result[0] or stieg2_alt_result[0])):
                 haplotype1_stuff.append((ref_location_list[index], 0, 1, 0, 0))
                 print((ref_location_list[index], 0, 1, 0, 0))
-            elif (stieg1_alt_result[0] or stieg2_alt_result[0]):
+            elif ((stieg1_alt_result[0] or stieg2_alt_result[0]) and not (hera1_alt_result[0] or hera2_alt_result[0])):
                 haplotype1_stuff.append((ref_location_list[index], 0, 0, 0, 1))
                 print((ref_location_list[index], 0, 0, 0, 1))
     write_path = "./intermediate/haplot1_result_block_{}.txt".format(phase_block_required)
@@ -340,11 +344,14 @@ def search_for_kstring_in_intermediate(tabex_loc, ref_loc, k_string):
     split_lines = output.splitlines()
     #print(output)
     for (index, split_line) in enumerate(split_lines):
-        count = split_line.split()[1]
-        if (count != "1"):
-            exists = True
-        else:
-            exists = False
+        try:
+            count = int(split_line.split()[1])
+            if count == 1:
+                exists = 1 # unique
+            else:
+                exists = 2 # exist but not unique
+        except:
+            exists = 0 # not found
         if index >= 1:
             array_for_results.append(exists)
     return array_for_results
