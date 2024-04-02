@@ -36,7 +36,8 @@ def make_fasta_file_for_each_phase_block_haplotype(k, vcf_loc, ref_loc, save_pat
         if ((len(kmer_first_half) + len(kmer_second_half_ref) + len(ref)) == k) and ((len(kmer_first_half) + len(kmer_second_half_alt) + len(alt)) == k):
             ref_kmer = "{}{}{}".format(kmer_first_half, ref, kmer_second_half_ref).lower()
             alt_kmer = "{}{}{}".format(kmer_first_half, alt, kmer_second_half_alt).lower()
-            ref_location = (record.CHROM, record.POS)
+            ref_chromosone = record.CHROM
+            ref_location = record.POS
             try:
                 phase_block = record.samples[0]["PS"]
             except:
@@ -55,7 +56,7 @@ def make_fasta_file_for_each_phase_block_haplotype(k, vcf_loc, ref_loc, save_pat
                 haplotype_ref_alt[3] = 1
             # write to fa file
             for (index, value) in enumerate(haplotype_ref_alt):
-                write_path = "{}{}_hap_{}.fa".format(save_path, phase_block, index)
+                write_path = "{}/{}{}_hap_{}.fa".format(save_path, ref_chromosone, phase_block, index)
                 with open(write_path, 'a') as fw:
                     if value == 1:
                         fw.write(">{}_{}\n{}\n".format(phase_block, ref_location, alt_kmer))
