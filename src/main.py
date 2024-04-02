@@ -28,7 +28,8 @@ def main():
     #util.find_which_parent_contain_kstring(0, k_string_vec, haplotype_allele_vec, ref_loc_vec, phase_blocks, TABEX_LOC, INTERMEDIATE_LOC, HERA_UNIQUE_LOC, STIEG_UNIQUE_LOC)
     #util.thread_runner_kmer_search(THREAD_NUMBER, k_string_vec, haplotype_allele_vec, ref_loc_vec, phase_blocks, TABEX_LOC, INTERMEDIATE_LOC, HERA_UNIQUE_LOC, STIEG_UNIQUE_LOC)
     #util.look_for_stieg_ref(0, k_string_vec, haplotype_allele_vec, ref_loc_vec, phase_blocks, TABEX_LOC, INTERMEDIATE_LOC, HERA_UNIQUE_LOC, STIEG_UNIQUE_LOC)
-    util.find_specific_phaseblock_kmer(K, VCF_LOC, HERA1_REF_LOC, 156, HERA_UNIQUE_LOC, STIEG_UNIQUE_LOC) #41039600 #156 #3224262
+    #util.find_specific_phaseblock_kmer(K, VCF_LOC, HERA1_REF_LOC, 156, HERA_UNIQUE_LOC, STIEG_UNIQUE_LOC) #41039600 #156 #3224262
+    util.make_fasta_file_for_each_phase_block_haplotype(K, VCF_LOC, HERA1_REF_LOC)
     return
 
 if __name__ == "__main__":
