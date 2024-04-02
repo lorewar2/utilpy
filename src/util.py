@@ -37,7 +37,10 @@ def make_fasta_file_for_each_phase_block_haplotype(k, vcf_loc, ref_loc, save_pat
             ref_kmer = "{}{}{}".format(kmer_first_half, ref, kmer_second_half_ref).lower()
             alt_kmer = "{}{}{}".format(kmer_first_half, alt, kmer_second_half_alt).lower()
             ref_location = (record.CHROM, record.POS)
-            phase_block = record.samples[0]["PS"]
+            try:
+                phase_block = record.samples[0]["PS"]
+            except:
+                continue
             temp_haplo = record.samples[0]["GT"]
             if len(temp_haplo) != 7:
                 continue
