@@ -10,16 +10,11 @@ HERA2_REF_LOC = "intermediate/solTubHeraHap2.fa.ktab"
 STIEG1_REF_LOC = "intermediate/solTubStiegHap1.fa.ktab"
 STIEG2_REF_LOC = "intermediate/solTubStiegHap2.fa.ktab"
 
-def make_fasta_file_for_each_phase_block_haplotype(k, vcf_loc, ref_loc):
-    phase_block_required = 156
+def make_fasta_file_for_each_phase_block_haplotype(k, vcf_loc, ref_loc, save_path):
     # for start just do 1 phase block 1 haplotype
-    ref_alt_kmer_list = []
-    haplotype_alleles_list = []
-    ref_location_list = []
-    found_bool = False
     variant_reader = vcf.Reader(filename = vcf_loc)
     ref_fasta = pyfaidx.Fasta(ref_loc)
-    print("Gathering {}-mers from {} vcf and {} ref for phase block {}".format(k, vcf_loc, ref_loc, phase_block_required))
+    print("Gathering {}-mers from {} vcf and {} ref and saving in fasta".format(k, vcf_loc, ref_loc))
     if k % 2 == 0:
         k_first_half_length = k // 2
         k_second_half_length = k // 2
@@ -29,18 +24,6 @@ def make_fasta_file_for_each_phase_block_haplotype(k, vcf_loc, ref_loc):
     for index, record in enumerate(variant_reader):
         if index % 10000 == 0:
             print("Searching progress {:.2f}%".format(100 * variant_reader.read_bytes() / variant_reader.total_bytes()))
-        try:
-            phase_block = record.samples[0]["PS"]
-            #print(phase_block)
-            if phase_block != phase_block_required:
-                if found_bool == True: # encountered different block after found
-                    break
-                continue
-            else:
-                print("FOUND")
-                found_bool = True
-        except:
-            continue
         # processing the required phase block
         # get all the info
         if len(record.alleles) != 3:
@@ -53,31 +36,28 @@ def make_fasta_file_for_each_phase_block_haplotype(k, vcf_loc, ref_loc):
         if ((len(kmer_first_half) + len(kmer_second_half_ref) + len(ref)) == k) and ((len(kmer_first_half) + len(kmer_second_half_alt) + len(alt)) == k):
             ref_kmer = "{}{}{}".format(kmer_first_half, ref, kmer_second_half_ref).lower()
             alt_kmer = "{}{}{}".format(kmer_first_half, alt, kmer_second_half_alt).lower()
-            haplotype_alleles_list.append(record.samples[0]["GT"])
-            ref_alt_kmer_list.append((ref_kmer, alt_kmer))
-            ref_location_list.append((record.CHROM, record.POS))
-    # find in parent stuff outside variant reader haplotype 1
-    for (index, ref_alt) in enumerate(ref_alt_kmer_list):
-        ref_kmer, alt_kmer = ref_alt
-        print(haplotype_alleles_list[index])
-        if len(haplotype_alleles_list[index]) != 7:
-            continue
-        haplotype_ref_alt = [0, 0, 0, 0]
-        if haplotype_alleles_list[index][0] == "1":
-            haplotype_ref_alt[0] = 1
-        if haplotype_alleles_list[index][2] == "1":
-            haplotype_ref_alt[1] = 1
-        if haplotype_alleles_list[index][4] == "1":
-            haplotype_ref_alt[2] = 1
-        if haplotype_alleles_list[index][6] == "1":
-            haplotype_ref_alt[3] = 1
-        # write to fa file
-        write_path = "./intermediate/{}_hap_1.fa".format(phase_block_required)
-        with open(write_path, 'a') as fw:
-            if haplotype_ref_alt[0] == 1:
-                fw.write(">{}_{}\n{}\n".format(phase_block_required, index, alt_kmer))
-            else:
-                fw.write(">{}_{}\n{}\n".format(phase_block_required, index, ref_kmer))
+            ref_location = (record.CHROM, record.POS)
+            phase_block = record.samples[0]["PS"]
+            temp_haplo = record.samples[0]["GT"]
+            if len(temp_haplo) != 7:
+                continue
+            haplotype_ref_alt = [0, 0, 0, 0]
+            if temp_haplo[0] == "1":
+                haplotype_ref_alt[0] = 1
+            if temp_haplo[2] == "1":
+                haplotype_ref_alt[1] = 1
+            if temp_haplo[4] == "1":
+                haplotype_ref_alt[2] = 1
+            if temp_haplo[6] == "1":
+                haplotype_ref_alt[3] = 1
+            # write to fa file
+            for (index, value) in enumerate(haplotype_ref_alt):
+                write_path = "{}{}_hap_{}.fa".format(save_path, phase_block, index)
+                with open(write_path, 'a') as fw:
+                    if value == 1:
+                        fw.write(">{}_{}\n{}\n".format(phase_block, ref_location, alt_kmer))
+                    else:
+                        fw.write(">{}_{}\n{}\n".format(phase_block, ref_location, ref_kmer))
     return
 
 def find_specific_phaseblock_kmer (k, vcf_loc, ref_loc, phase_block_required, unique_hera, unique_stieg):
