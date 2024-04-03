@@ -18,8 +18,8 @@ def make_kmc_files_and_dump (processing_folder):
         print("Processing {}".format(file))
         # make kmc files for all do today
         #~/kmc/bin/kmc -k21 -fa -ci1 -r 156_hap_1.fa 156_hap_1 .
-        phase_fa = file
-        phase_kmc = file[0:-3]
+        phase_fa = "{}/{}".format(processing_folder, file)
+        phase_kmc = "{}/{}".format(processing_folder, file[0:-3])
         command_to_run = "~/kmc/bin/kmc -k21 -fa -ci1 -r {} {} .".format(phase_fa, phase_kmc)
         print(command_to_run)
         output = os.popen(command_to_run)
