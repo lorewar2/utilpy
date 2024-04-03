@@ -10,6 +10,40 @@ HERA2_REF_LOC = "intermediate/solTubHeraHap2.fa.ktab"
 STIEG1_REF_LOC = "intermediate/solTubStiegHap1.fa.ktab"
 STIEG2_REF_LOC = "intermediate/solTubStiegHap2.fa.ktab"
 
+def make_kmc_files_and_dump (processing_folder):
+    # find all the files in the folder do today
+    files = os.listdir(processing_folder)
+    files = [f for f in files if os.path.isfile(processing_folder + '/' + f)]
+    for file in files:
+        print("Processing {}".format(file))
+        # make kmc files for all do today
+        #~/kmc/bin/kmc -k21 -fa -ci1 -r 156_hap_1.fa 156_hap_1 .
+        phase_fa = file
+        phase_kmc = file[0:-2]
+        command_to_run = "~/kmc/bin/kmc -k21 -fa -ci1 -r {} {} .".format(phase_fa, phase_kmc)
+        print(command_to_run)
+        # make intercept file for both do today
+        # hera
+        hera_intercept_kmc = "{}_hera".format(phase_kmc)
+        stieg_intercept_kmc = "{}_stieg".format(phase_kmc)
+        command_to_run = "~/kmc/bin/kmc_tools simple {} {}/../hera_unique intersect {}".format(phase_kmc, processing_folder, hera_intercept_kmc)
+        print(command_to_run)
+        command_to_run = "~/kmc/bin/kmc_tools simple {} {}/../stieg_unique intersect {}".format(phase_kmc, processing_folder, stieg_intercept_kmc)
+        print(command_to_run)
+        #~/kmc/bin/kmc_tools simple ./156_hap_1 ./hera_unique intersect test
+        # make dump text file for both
+        command_to_run = "~/kmc/bin/kmc_tools transform {} dump {}.txt".format(hera_intercept_kmc, hera_intercept_kmc)
+        print(command_to_run)
+        command_to_run = "~/kmc/bin/kmc_tools transform {} dump {}.txt".format(stieg_intercept_kmc, stieg_intercept_kmc)
+        print(command_to_run)
+        # find the number of lines in both
+        command_to_run = "cat {}.txt | wc -l".format(hera_intercept_kmc)
+        print(command_to_run)
+        command_to_run = "cat {}.txt | wc -l".format(stieg_intercept_kmc)
+        print(command_to_run)
+        break
+    return
+
 def make_fasta_file_for_each_phase_block_haplotype(k, vcf_loc, ref_loc, save_path):
     # for start just do 1 phase block 1 haplotype
     variant_reader = vcf.Reader(filename = vcf_loc)
