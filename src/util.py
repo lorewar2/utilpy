@@ -15,11 +15,15 @@ def make_kmc_files_and_dump (processing_folder):
     files = os.listdir(processing_folder)
     files = [f for f in files if os.path.isfile(processing_folder + '/' + f)]
     for file in files:
+        if file != "CM034976.1_156_hap_0.fa":
+            continue
         print("Processing {}".format(file))
         # make kmc files for all do today
         #~/kmc/bin/kmc -k21 -fa -ci1 -r 156_hap_1.fa 156_hap_1 .
         phase_fa = "{}/{}".format(processing_folder, file)
         phase_kmc = "{}/{}".format(processing_folder, file[0:-3])
+        print(phase_fa)
+        print(phase_kmc)
         command_to_run = "~/kmc/bin/kmc -k21 -fa -ci1 -r {} {} .".format(phase_fa, phase_kmc)
         print(command_to_run)
         os.system(command_to_run)
@@ -48,7 +52,6 @@ def make_kmc_files_and_dump (processing_folder):
         command_to_run = "cat {}.txt | wc -l".format(stieg_intercept_kmc)
         print(command_to_run)
         os.system(command_to_run)
-        break
     return
 
 def make_fasta_file_for_each_phase_block_haplotype(k, vcf_loc, ref_loc, save_path):
@@ -97,7 +100,7 @@ def make_fasta_file_for_each_phase_block_haplotype(k, vcf_loc, ref_loc, save_pat
                 haplotype_ref_alt[3] = 1
             # write to fa file
             for (index, value) in enumerate(haplotype_ref_alt):
-                write_path = "{}/{}{}_hap_{}.fa".format(save_path, ref_chromosone, phase_block, index)
+                write_path = "{}/{}_{}_hap_{}.fa".format(save_path, ref_chromosone, phase_block, index)
                 with open(write_path, 'a') as fw:
                     if value == 1:
                         fw.write(">{}_{}\n{}\n".format(phase_block, ref_location, alt_kmer))
