@@ -19,28 +19,37 @@ def make_kmc_files_and_dump (processing_folder):
         # make kmc files for all do today
         #~/kmc/bin/kmc -k21 -fa -ci1 -r 156_hap_1.fa 156_hap_1 .
         phase_fa = file
-        phase_kmc = file[0:-2]
+        phase_kmc = file[0:-3]
         command_to_run = "~/kmc/bin/kmc -k21 -fa -ci1 -r {} {} .".format(phase_fa, phase_kmc)
         print(command_to_run)
+        output = os.popen(command_to_run)
         # make intercept file for both do today
         # hera
         hera_intercept_kmc = "{}_hera".format(phase_kmc)
         stieg_intercept_kmc = "{}_stieg".format(phase_kmc)
         command_to_run = "~/kmc/bin/kmc_tools simple {} {}/../hera_unique intersect {}".format(phase_kmc, processing_folder, hera_intercept_kmc)
         print(command_to_run)
+        output = os.popen(command_to_run)
         command_to_run = "~/kmc/bin/kmc_tools simple {} {}/../stieg_unique intersect {}".format(phase_kmc, processing_folder, stieg_intercept_kmc)
         print(command_to_run)
+        output = os.popen(command_to_run)
         #~/kmc/bin/kmc_tools simple ./156_hap_1 ./hera_unique intersect test
         # make dump text file for both
         command_to_run = "~/kmc/bin/kmc_tools transform {} dump {}.txt".format(hera_intercept_kmc, hera_intercept_kmc)
         print(command_to_run)
+        output = os.popen(command_to_run)
         command_to_run = "~/kmc/bin/kmc_tools transform {} dump {}.txt".format(stieg_intercept_kmc, stieg_intercept_kmc)
         print(command_to_run)
+        output = os.popen(command_to_run)
         # find the number of lines in both
         command_to_run = "cat {}.txt | wc -l".format(hera_intercept_kmc)
         print(command_to_run)
+        output = os.popen(command_to_run)
+        print("hera {}".format(output))
         command_to_run = "cat {}.txt | wc -l".format(stieg_intercept_kmc)
         print(command_to_run)
+        output = os.popen(command_to_run)
+        print("steig {}".format(output))
         break
     return
 
