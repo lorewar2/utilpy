@@ -14,12 +14,30 @@ def make_result_file_from_dump (processing_folder):
     files = os.listdir(processing_folder)
     files = [f for f in files if os.path.isfile(processing_folder + '/' + f)]
     # only files which are .fa
-    txt_files = []
+    hap1_files = []
+    hap2_files = []
+    hap3_files = []
+    hap4_files = []
     for file in files:
-        if file.split(".")[-1] == "fa":
-            txt_files.append(("{}/{}_hera.txt".format(processing_folder, file[-2]), "{}/{}_stieg.txt".format(processing_folder, file[-2])))
-    print(txt_files)
-    
+        if file.split("_")[3] == "1.fa":
+            hap1_files.append(("{}/{}_hera.txt".format(processing_folder, file[0:-3]), "{}/{}_stieg.txt".format(processing_folder, file[0:-3])))
+        if file.split("_")[3] == "2.fa":
+            hap2_files.append(("{}/{}_hera.txt".format(processing_folder, file[0:-3]), "{}/{}_stieg.txt".format(processing_folder, file[0:-3])))
+        if file.split("_")[3] == "3.fa":
+            hap3_files.append(("{}/{}_hera.txt".format(processing_folder, file[0:-3]), "{}/{}_stieg.txt".format(processing_folder, file[0:-3])))
+        if file.split("_")[3] == "4.fa":
+            hap4_files.append(("{}/{}_hera.txt".format(processing_folder, file[0:-3]), "{}/{}_stieg.txt".format(processing_folder, file[0:-3])))
+    # count number in hera and steig for the phase block
+    for hera_stieg_file in hap1_files:
+        hera_file, stieg_file = hera_stieg_file
+        print(hera_file.split("_")[0])
+        # get the chr and location haplotype
+        with open(hera_file, 'r') as fp:
+            lines = len(fp.readlines())
+            print("hera {}".format(lines))
+        with open(stieg_file, 'r') as fp:
+            lines = len(fp.readlines())
+            print("stieg {}".format(lines))
     return
 
 def make_kmc_files_and_dump (processing_folder):
