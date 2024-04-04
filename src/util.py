@@ -19,13 +19,13 @@ def make_result_file_from_dump (processing_folder):
     hap3_files = []
     hap4_files = []
     for file in files:
-        if file.split("_")[3] == "1.fa":
+        if file.split("_")[3] == "0.fa":
             hap1_files.append(("{}/{}_hera.txt".format(processing_folder, file[0:-3]), "{}/{}_stieg.txt".format(processing_folder, file[0:-3])))
-        if file.split("_")[3] == "2.fa":
+        if file.split("_")[3] == "1.fa":
             hap2_files.append(("{}/{}_hera.txt".format(processing_folder, file[0:-3]), "{}/{}_stieg.txt".format(processing_folder, file[0:-3])))
-        if file.split("_")[3] == "3.fa":
+        if file.split("_")[3] == "2.fa":
             hap3_files.append(("{}/{}_hera.txt".format(processing_folder, file[0:-3]), "{}/{}_stieg.txt".format(processing_folder, file[0:-3])))
-        if file.split("_")[3] == "4.fa":
+        if file.split("_")[3] == "3.fa":
             hap4_files.append(("{}/{}_hera.txt".format(processing_folder, file[0:-3]), "{}/{}_stieg.txt".format(processing_folder, file[0:-3])))
     # count number in hera and steig for the phase block
     write_path = "./haplotype1_result.csv"
@@ -36,7 +36,7 @@ def make_result_file_from_dump (processing_folder):
             hera_lines = len(fp.readlines())
         with open(stieg_file, 'r') as fp:
             stieg_lines = len(fp.readlines())
-        write_line = "{},{},{},{}\n".format(hera_file.split("_")[-5], hera_file.split("_")[-4], hera_lines, stieg_lines)
+        write_line = "{},{},{},{}\n".format(hera_file.split("/")[-1].split("_")[-5], hera_file.split("_")[-4], hera_lines, stieg_lines)
         with open(write_path, 'a') as fw:
             fw.write(write_line)
     write_path = "./haplotype2_result.csv"
@@ -47,7 +47,7 @@ def make_result_file_from_dump (processing_folder):
             hera_lines = len(fp.readlines())
         with open(stieg_file, 'r') as fp:
             stieg_lines = len(fp.readlines())
-        write_line = "{},{},{},{}\n".format(hera_file.split("_")[-5], hera_file.split("_")[-4], hera_lines, stieg_lines)
+        write_line = "{},{},{},{}\n".format(hera_file.split("/")[-1].split("_")[-5], hera_file.split("_")[-4], hera_lines, stieg_lines)
         with open(write_path, 'a') as fw:
             fw.write(write_line)
     write_path = "./haplotype3_result.csv"
@@ -58,7 +58,7 @@ def make_result_file_from_dump (processing_folder):
             hera_lines = len(fp.readlines())
         with open(stieg_file, 'r') as fp:
             stieg_lines = len(fp.readlines())
-        write_line = "{},{},{},{}\n".format(hera_file.split("_")[-5], hera_file.split("_")[-4], hera_lines, stieg_lines)
+        write_line = "{},{},{},{}\n".format(hera_file.split("/")[-1].split("_")[-5], hera_file.split("_")[-4], hera_lines, stieg_lines)
         with open(write_path, 'a') as fw:
             fw.write(write_line)
     write_path = "./haplotype4_result.csv"
@@ -69,7 +69,7 @@ def make_result_file_from_dump (processing_folder):
             hera_lines = len(fp.readlines())
         with open(stieg_file, 'r') as fp:
             stieg_lines = len(fp.readlines())
-        write_line = "{},{},{},{}\n".format(hera_file.split("_")[-5], hera_file.split("_")[-4], hera_lines, stieg_lines)
+        write_line = "{},{},{},{}\n".format(hera_file.split("/")[-1].split("_")[-5], hera_file.split("_")[-4], hera_lines, stieg_lines)
         with open(write_path, 'a') as fw:
             fw.write(write_line)
     return
