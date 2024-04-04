@@ -10,6 +10,18 @@ HERA2_REF_LOC = "intermediate/solTubHeraHap2.fa.ktab"
 STIEG1_REF_LOC = "intermediate/solTubStiegHap1.fa.ktab"
 STIEG2_REF_LOC = "intermediate/solTubStiegHap2.fa.ktab"
 
+def make_result_file_from_dump (processing_folder):
+    files = os.listdir(processing_folder)
+    files = [f for f in files if os.path.isfile(processing_folder + '/' + f)]
+    # only files which are .fa
+    txt_files = []
+    for file in files:
+        if file.split(".")[-1] == "fa":
+            txt_files.append(("{}/{}_hera.txt".format(processing_folder, file[-2]), "{}/{}_stieg.txt".format(processing_folder, file[-2])))
+    print(txt_files)
+    
+    return
+
 def make_kmc_files_and_dump (processing_folder):
     # find all the files in the folder do today
     files = os.listdir(processing_folder)
