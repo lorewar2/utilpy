@@ -29,7 +29,7 @@ def save_alt_and_ref_kmers_in_files(k, vcf_loc, ref_loc):
                     print("progress {:.2f}%".format(100 * variant_reader.read_bytes() / variant_reader.total_bytes()))
                     if index > 1000:
                         break
-                if len(record.alleles) != 3:
+                if len(record.alleles) != 3 or record.samples[0]["GT"] == "1|2" or record.samples[0]["GT"] == "1/2" or record.samples[0]["GT"] == "2/1" or record.samples[0]["GT"] == "2|1":
                     continue
                 ref = record.alleles[0]
                 alt = record.alleles[1]
@@ -41,16 +41,16 @@ def save_alt_and_ref_kmers_in_files(k, vcf_loc, ref_loc):
                     alt_kmer = "{}{}{}".format(kmer_first_half, alt, kmer_second_half_alt).lower()
                     #print(index)
                     haplo_array = record.samples[0]["GT"].split("|")
-                    f1.write(">{}".format(index))
-                    f2.write(">{}".format(index))
+                    f1.write(">{}\n".format(index))
+                    f2.write(">{}\n".format(index))
                     if haplo_array[0] == "0":
-                        f1.write("{}".format(ref_kmer))
+                        f1.write("{}\n".format(ref_kmer))
                     if haplo_array[0] == "1":
-                        f1.write("{}".format(alt_kmer))
+                        f1.write("{}\n".format(alt_kmer))
                     if haplo_array[1] == "0":
-                        f2.write("{}".format(ref_kmer))
+                        f2.write("{}\n".format(ref_kmer))
                     if haplo_array[1] == "1":
-                        f2.write(">{}".format(alt_kmer))
+                        f2.write("{}\n".format(alt_kmer))
     return
 
 def make_result_file_from_dump (processing_folder):
