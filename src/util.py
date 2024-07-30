@@ -22,25 +22,35 @@ def save_alt_and_ref_kmers_in_files(k, vcf_loc, ref_loc):
     else:
         k_first_half_length = (k // 2) + 1
         k_second_half_length = k // 2
-    for index, record in enumerate(variant_reader):
-        if index % 10000 == 0:
-            print("progress {:.2f}%".format(100 * variant_reader.read_bytes() / variant_reader.total_bytes()))
-            if index > 1000:
-                break
-        if len(record.alleles) != 3:
-            continue
-        ref = record.alleles[0]
-        alt = record.alleles[1]
-        kmer_first_half = ref_fasta[record.CHROM][record.POS - k_first_half_length - 1 : record.POS - 1]
-        kmer_second_half_ref = ref_fasta[record.CHROM][record.POS - 1 + len(ref) : record.POS + k_second_half_length - 1]
-        kmer_second_half_alt = ref_fasta[record.CHROM][record.POS - 1 + len(ref) : record.POS + len(ref) - len(alt) + k_second_half_length - 1]
-        if ((len(kmer_first_half) + len(kmer_second_half_ref) + len(ref)) == k) and ((len(kmer_first_half) + len(kmer_second_half_alt) + len(alt)) == k):
-            ref_kmer = "{}{}{}".format(kmer_first_half, ref, kmer_second_half_ref).lower()
-            alt_kmer = "{}{}{}".format(kmer_first_half, alt, kmer_second_half_alt).lower()
-            print(index)
-            print(record.samples[0]["GT"])
-            print(ref_kmer)
-            print(alt_kmer)
+    with open(GROUND1_SAVE_LOC, 'a') as f1:
+        with open(GROUND2_SAVE_LOC, 'a') as f2:
+            for index, record in enumerate(variant_reader):
+                if index % 10000 == 0:
+                    print("progress {:.2f}%".format(100 * variant_reader.read_bytes() / variant_reader.total_bytes()))
+                    if index > 1000:
+                        break
+                if len(record.alleles) != 3:
+                    continue
+                ref = record.alleles[0]
+                alt = record.alleles[1]
+                kmer_first_half = ref_fasta[record.CHROM][record.POS - k_first_half_length - 1 : record.POS - 1]
+                kmer_second_half_ref = ref_fasta[record.CHROM][record.POS - 1 + len(ref) : record.POS + k_second_half_length - 1]
+                kmer_second_half_alt = ref_fasta[record.CHROM][record.POS - 1 + len(ref) : record.POS + len(ref) - len(alt) + k_second_half_length - 1]
+                if ((len(kmer_first_half) + len(kmer_second_half_ref) + len(ref)) == k) and ((len(kmer_first_half) + len(kmer_second_half_alt) + len(alt)) == k):
+                    ref_kmer = "{}{}{}".format(kmer_first_half, ref, kmer_second_half_ref).lower()
+                    alt_kmer = "{}{}{}".format(kmer_first_half, alt, kmer_second_half_alt).lower()
+                    #print(index)
+                    haplo_array = record.samples[0]["GT"].split("|")
+                    f1.write(">{}".format(index))
+                    f2.write(">{}".format(index))
+                    if haplo_array[0] == "0":
+                        f1.write("{}".format(ref_kmer))
+                    if haplo_array[0] == "1":
+                        f1.write("{}".format(alt_kmer))
+                    if haplo_array[1] == "0":
+                        f2.write("{}".format(ref_kmer))
+                    if haplo_array[1] == "1":
+                        f2.write(">{}".format(alt_kmer))
     return
 
 def make_result_file_from_dump (processing_folder):
