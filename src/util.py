@@ -9,6 +9,39 @@ HERA1_REF_LOC = "intermediate/solTubHeraHap1.fa.ktab"
 HERA2_REF_LOC = "intermediate/solTubHeraHap2.fa.ktab"
 STIEG1_REF_LOC = "intermediate/solTubStiegHap1.fa.ktab"
 STIEG2_REF_LOC = "intermediate/solTubStiegHap2.fa.ktab"
+GROUND1_SAVE_LOC = "intermediate/hap1_ground.fa"
+GROUND2_SAVE_LOC = "intermediate/hap2_ground.fa"
+
+def save_alt_and_ref_kmers_in_files(k, vcf_loc, ref_loc):
+    variant_reader = vcf.Reader(filename = vcf_loc)
+    ref_fasta = pyfaidx.Fasta(ref_loc)
+    print("Gathering {}-mers from {} vcf and {} ref".format(k, vcf_loc, ref_loc))
+    if k % 2 == 0:
+        k_first_half_length = k // 2
+        k_second_half_length = k // 2
+    else:
+        k_first_half_length = (k // 2) + 1
+        k_second_half_length = k // 2
+    for index, record in enumerate(variant_reader):
+        if index % 10000 == 0:
+            print("progress {:.2f}%".format(100 * variant_reader.read_bytes() / variant_reader.total_bytes()))
+            if index > 1000:
+                break
+        if len(record.alleles) != 3:
+            continue
+        ref = record.alleles[0]
+        alt = record.alleles[1]
+        kmer_first_half = ref_fasta[record.CHROM][record.POS - k_first_half_length - 1 : record.POS - 1]
+        kmer_second_half_ref = ref_fasta[record.CHROM][record.POS - 1 + len(ref) : record.POS + k_second_half_length - 1]
+        kmer_second_half_alt = ref_fasta[record.CHROM][record.POS - 1 + len(ref) : record.POS + len(ref) - len(alt) + k_second_half_length - 1]
+        if ((len(kmer_first_half) + len(kmer_second_half_ref) + len(ref)) == k) and ((len(kmer_first_half) + len(kmer_second_half_alt) + len(alt)) == k):
+            ref_kmer = "{}{}{}".format(kmer_first_half, ref, kmer_second_half_ref).lower()
+            alt_kmer = "{}{}{}".format(kmer_first_half, alt, kmer_second_half_alt).lower()
+            print(index)
+            print(record.samples[0]["GT"])
+            print(ref_kmer)
+            print(alt_kmer)
+    return
 
 def make_result_file_from_dump (processing_folder):
     files = os.listdir(processing_folder)
