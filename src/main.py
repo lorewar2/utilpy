@@ -32,7 +32,7 @@ def main():
     #util.make_fasta_file_for_each_phase_block_haplotype(K, VCF_LOC, HERA1_REF_LOC, "/data1/phasstphase_test/potato/kmc_run/phaseblockfasta")
     #util.make_kmc_files_and_dump("/data1/phasstphase_test/potato/kmc_run/phaseblockfasta")
     #util.make_result_file_from_dump ("/data1/phasstphase_test/potato/kmc_run/phaseblockfasta")
-    util.modify_ref_and_save_hap1_hap2(21, "/data1/GiaB_benchmark/HG001_GRCh38_1_22_v4.2.1_benchmark_hifiasm_v11_phasetransfer_fix.resorted.vcf", "/data1/GiaB_benchmark/GRCh38.fa")
+    util.modify_ref_and_save_hap1_hap2("/data1/GiaB_benchmark/HG001_GRCh38_1_22_v4.2.1_benchmark_hifiasm_v11_phasetransfer_fix.resorted.vcf", "/data1/GiaB_benchmark/GRCh38.fa")
     return
 
 if __name__ == "__main__":
