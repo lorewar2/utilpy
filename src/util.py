@@ -13,7 +13,7 @@ GROUND1_SAVE_LOC = "intermediate/hap1_ground.fa"
 GROUND2_SAVE_LOC = "intermediate/hap2_ground.fa"
 
 # modify this to only use the variant file and use the chr and region
-def open_vcf_and_get_k_mer(k, vcf_loc, ref_loc, chromosone, start, end):
+def open_vcf_and_get_k_mer(k, vcf_loc, ref_loc):
     ref_alt_kmer_list = []
     haplotype_alleles_list = []
     ref_location_list = []
@@ -28,12 +28,6 @@ def open_vcf_and_get_k_mer(k, vcf_loc, ref_loc, chromosone, start, end):
         k_first_half_length = (k // 2) + 1
         k_second_half_length = k // 2
     for index, record in enumerate(variant_reader):
-        if record.CHROM != chromosone:
-            continue
-        if record.POS < start:
-            continue
-        if record.POS > end:
-            continue
         if index % 10000 == 0:
             print("progress {:.2f}%".format(100 * variant_reader.read_bytes() / variant_reader.total_bytes()))
             if index > 1000:
@@ -48,12 +42,18 @@ def open_vcf_and_get_k_mer(k, vcf_loc, ref_loc, chromosone, start, end):
         if ((len(kmer_first_half) + len(kmer_second_half_ref) + len(ref)) == k) and ((len(kmer_first_half) + len(kmer_second_half_alt) + len(alt)) == k):
             ref_kmer = "{}{}{}".format(kmer_first_half, ref, kmer_second_half_ref).lower()
             alt_kmer = "{}{}{}".format(kmer_first_half, alt, kmer_second_half_alt).lower()
+            try:
+                phase_block = record.samples[0]["PS"]
+            except:
+                continue
+            phase_block_numbers.append(phase_block)
             haplotype_alleles_list.append(record.samples[0]["GT"])
             ref_alt_kmer_list.append((ref_kmer, alt_kmer))
             ref_location_list.append((record.CHROM, record.POS))
-    return ref_alt_kmer_list, haplotype_alleles_list, ref_location_list
+    return ref_alt_kmer_list, haplotype_alleles_list, ref_location_list, phase_block_numbers
 
-def find_which_parent_contain_kstring(thread_index, k_string_vec, haplotype_allele_vec, ref_loc_vec, tabex_loc, intermediate_loc, hera_ref, stieg_ref):
+def find_which_parent_contain_kstring(thread_index, k_string_vec, haplotype_allele_vec, ref_loc_vec, phase_blocks, tabex_loc, intermediate_loc, hera_ref, stieg_ref):
+    final_result_blocks = [(phase_blocks[0], [0,0,0,0], [0,0,0,0], [0,0,0,0], [0,0,0,0])] # one block is phase block, haplotype counts (hera ref, hera alt, stieg ref, stieg alt)
     concancated_ref_k_string = ""
     concancated_alt_k_string = ""
     write_path = "{}final_result_{}.txt".format(intermediate_loc, thread_index)
@@ -73,8 +73,82 @@ def find_which_parent_contain_kstring(thread_index, k_string_vec, haplotype_alle
             # process the stuff put in appropriate phase block and haplotype (increment)
             local_i = 0
             for global_i in range(k_index - 20, k_index):
-                print("ref pos {}".format(ref_loc_vec[global_i]))
+                #print(local_i, global_i)
+                #print("Reference location: {}".format(ref_loc_vec[global_i]))
+                #print("Haplotype: {}".format(haplotype_allele_vec[global_i]))
+                #print("Phase block number: {}".format(phase_blocks[global_i]))
+                #print("Exclusive Ref kmer found: hera {} stieg {}".format(hera_ref_result[local_i], stieg_ref_result[local_i]))
+                #print("Exclusive Alt kmer found: hera {} stieg {}".format(hera_alt_result[local_i], stieg_alt_result[local_i]))
+                # make a new block if the phase block is different
+                if phase_blocks[global_i] != final_result_blocks[-1][0]:
+                    print("New phase block processing.. {}".format(phase_blocks[global_i]))
+                    with open(write_path, 'a') as fw:
+                        fw.write("{}\n".format(final_result_blocks[-1]))
+                    final_result_blocks.append((phase_blocks[global_i], [0,0,0,0], [0,0,0,0], [0,0,0,0], [0,0,0,0]))
+                # only if both hera and stieg present
+                #if not ((hera_ref_result[local_i] and stieg_alt_result[local_i]) or (hera_alt_result[local_i] and stieg_ref_result[local_i])):
+                #    local_i += 1
+                #    continue
+                # only if all are unique
+                #if ((hera_ref_result[local_i] == 2) or (stieg_alt_result[local_i] == 2) or (hera_alt_result[local_i] == 2) or (stieg_ref_result[local_i] == 2)):
+                #    local_i += 1
+                #    continue
+                # only if processed correctly by the phasstphase
+                if len(haplotype_allele_vec[global_i]) != 7:
+                    local_i += 1
+                    continue
+                else:
+                    haplotype_ref_alt = [0, 0, 0, 0]
+                    if haplotype_allele_vec[global_i][0] == "1":
+                        haplotype_ref_alt[0] = 1
+                    if haplotype_allele_vec[global_i][2] == "1":
+                        haplotype_ref_alt[1] = 1
+                    if haplotype_allele_vec[global_i][4] == "1":
+                        haplotype_ref_alt[2] = 1
+                    if haplotype_allele_vec[global_i][6] == "1":
+                        haplotype_ref_alt[3] = 1
+                    #print(haplotype_ref_alt, haplotype_allele_vec[global_i])]
                 print("processing {} {} {} {}".format(hera_ref_result[local_i], stieg_alt_result[local_i], hera_alt_result[local_i], stieg_ref_result[local_i]))
+                if (hera_ref_result[local_i] == 1) and (stieg_ref_result[local_i] == 0):
+                    # increment the hera ref haplotypes
+                    if haplotype_ref_alt[0] == 0:
+                        final_result_blocks[-1][1][0] += 1
+                    if haplotype_ref_alt[1] == 0:
+                        final_result_blocks[-1][2][0] += 1
+                    if haplotype_ref_alt[2] == 0:
+                        final_result_blocks[-1][3][0] += 1
+                    if haplotype_ref_alt[3] == 0:
+                        final_result_blocks[-1][4][0] += 1
+                if (hera_alt_result[local_i] == 1) and (stieg_alt_result[local_i] == 0):
+                    # increment the hera alt haplotypes
+                    if haplotype_ref_alt[0] == 1:
+                        final_result_blocks[-1][1][1] += 1
+                    if haplotype_ref_alt[1] == 1:
+                        final_result_blocks[-1][2][1] += 1
+                    if haplotype_ref_alt[2] == 1:
+                        final_result_blocks[-1][3][1] += 1
+                    if haplotype_ref_alt[3] == 1:
+                        final_result_blocks[-1][4][1] += 1
+                if (stieg_ref_result[local_i] == 1) and (hera_ref_result[local_i] == 0):
+                    # increment the stieg ref haplotypes
+                    if haplotype_ref_alt[0] == 0:
+                        final_result_blocks[-1][1][2] += 1
+                    if haplotype_ref_alt[1] == 0:
+                        final_result_blocks[-1][2][2] += 1
+                    if haplotype_ref_alt[2] == 0:
+                        final_result_blocks[-1][3][2] += 1
+                    if haplotype_ref_alt[3] == 0:
+                        final_result_blocks[-1][4][2] += 1
+                if (stieg_alt_result[local_i] == 1) and (hera_alt_result[local_i] == 0):
+                    # increment the stieg alt haplotypes
+                    if haplotype_ref_alt[0] == 1:
+                        final_result_blocks[-1][1][3] += 1
+                    if haplotype_ref_alt[1] == 1:
+                        final_result_blocks[-1][2][3] += 1
+                    if haplotype_ref_alt[2] == 1:
+                        final_result_blocks[-1][3][3] += 1
+                    if haplotype_ref_alt[3] == 1:
+                        final_result_blocks[-1][4][3] += 1
                 local_i += 1
         concancated_ref_k_string = "{} {}".format(concancated_ref_k_string, ref_k_string)
         concancated_alt_k_string = "{} {}".format(concancated_alt_k_string, alt_k_string)

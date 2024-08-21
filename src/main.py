@@ -26,12 +26,9 @@ def main():
     # make unique kmer files
     util.unique_kmers_for_parent_from_intermediates_from_reads(LOGEX_LOC, INTERMEDIATE_LOC, HERA_READ_LOC, STIEG_READ_LOC)
     # search the vcf and find a kmer
-    k_string_vec, haplotype_allele_vec, ref_loc_vec = util.open_vcf_and_get_k_mer(K, DEEPVARIANT_LOC, HERA1_REF_LOC)
+    #k_string_vec, haplotype_allele_vec, ref_loc_vec, phase_blocks = util.open_vcf_and_get_k_mer(K, VCF_LOC, HERA1_REF_LOC)
     # look for the kmer in all 4 parents
-    util.find_which_parent_contain_kstring(0, k_string_vec, haplotype_allele_vec, ref_loc_vec, TABEX_LOC, INTERMEDIATE_LOC, HERA_UNIQUE_LOC, STIEG_UNIQUE_LOC)
-    #util.thread_runner_kmer_search(THREAD_NUMBER, k_string_vec, haplotype_allele_vec, ref_loc_vec, phase_blocks, TABEX_LOC, INTERMEDIATE_LOC, HERA_UNIQUE_LOC, STIEG_UNIQUE_LOC)
-    #util.look_for_stieg_ref(0, k_string_vec, haplotype_allele_vec, ref_loc_vec, phase_blocks, TABEX_LOC, INTERMEDIATE_LOC, HERA_UNIQUE_LOC, STIEG_UNIQUE_LOC)
-    #util.find_specific_phaseblock_kmer(K, VCF_LOC, HERA1_REF_LOC, 156, HERA_UNIQUE_LOC, STIEG_UNIQUE_LOC) #41039600 #156 #3224262
+    #util.find_which_parent_contain_kstring(0, k_string_vec, haplotype_allele_vec, ref_loc_vec, phase_blocks, TABEX_LOC, INTERMEDIATE_LOC, HERA_UNIQUE_LOC, STIEG_UNIQUE_LOC)
     return
 
 if __name__ == "__main__":
