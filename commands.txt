@@ -1,0 +1,4 @@
+
+HIPHASE compare
+
+whatshap compare --names truth,hiphase --ignore-sample-name --tsv-pairwise eval.tsv /data1/GiaB_benchmark/HG001_GRCh38_1_22_v4.2.1_benchmark_hifiasm_v11_phasetransfer_fix.resorted.vcf /data1/phasstphase_test/hg38/hiphase/hiphase.vcf
