@@ -1,6 +1,6 @@
 REMOVE MULTIALLELE SITES (DO THIS FOR ALL)
 
-zcat phasstphase.vcf.gz |grep -Ev '(1\|2|2\|0|2\|1)' |bgzip > ~/comparing/phasstphase_modified.vcf.gz
+zcat hapcut2_out.phased.VCF.gz |grep -Ev '(1\|2|2\|0|2\|1)' |bgzip > ~/comparing/hapcut2_hic_modified.vcf.gz
 
 
 HIPHASE COMPARE
@@ -13,4 +13,8 @@ whatshap compare --names truth,whatshap --ignore-sample-name --tsv-pairwise what
 
 PHASSTPHASE COMPARE
 
-whatshap compare --names truth,phasstphase --ignore-sample-name --tsv-pairwise phasstphase_dummy.tsv /data1/GiaB_benchmark/HG001_GRCh38_1_22_v4.2.1_benchmark_hifiasm_v11_phasetransfer_fix.resorted.vcf phasstphase_dummy.vcf
+whatshap compare --names truth,phasstphase --ignore-sample-name --tsv-pairwise test_hiphase_only_variant.tsv /data1/GiaB_benchmark/HG001_GRCh38_1_22_v4.2.1_benchmark_hifiasm_v11_phasetransfer_fix.resorted.vcf hiphase_modified_variants_only.vcf
+
+HAPCUT2 COMPARE
+
+whatshap compare --names truth,phasstphase --ignore-sample-name --tsv-pairwise hapcut2_hic_eval.tsv /data1/GiaB_benchmark/HG001_GRCh38_1_22_v4.2.1_benchmark_hifiasm_v11_phasetransfer_fix.resorted.vcf hapcut2_hic_modified.vcf.gz
