@@ -13,4 +13,4 @@ whatshap compare --names truth,whatshap --ignore-sample-name --tsv-pairwise what
 
 PHASSTPHASE COMPARE
 
-whatshap compare --names truth,phasstphase --ignore-sample-name --tsv-pairwise phasstphase_eval.tsv /data1/GiaB_benchmark/HG001_GRCh38_1_22_v4.2.1_benchmark_hifiasm_v11_phasetransfer_fix.resorted.vcf phasstphase_modified.vcf.gz
+whatshap compare --names truth,phasstphase --ignore-sample-name --tsv-pairwise phasstphase_dummy.tsv /data1/GiaB_benchmark/HG001_GRCh38_1_22_v4.2.1_benchmark_hifiasm_v11_phasetransfer_fix.resorted.vcf phasstphase_dummy.vcf
