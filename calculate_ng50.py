@@ -2,7 +2,7 @@ from collections import defaultdict
 
 def main():
     # Genome length to be used in NG50
-    genome_length = 3_200_000_000
+    genome_length = 2_820_000_000
     file1 = open('phasstphase_modified.vcf', 'r')
     Lines = file1.readlines()
     phase_blocks_all = []
@@ -34,9 +34,8 @@ def main():
                 this_phase_block = int(split_array[9].split(":")[PS_pos])
                 if this_phase_block == current_phase_block:
                     current_phase_block_length = location - current_phase_block_start
-                    if current_phase_block_length > 100_000:
+                    if current_phase_block_length > 1_000_000:
                         print(location, this_phase_block, "dsd")
-                        print(line)
                 else:
                     if current_phase_block_length > 0:
                         phase_blocks_all.append((chromosone, location, current_phase_block_length))
@@ -52,7 +51,7 @@ def main():
     # Use the merged list to make the phase blocks (just lengths)
     phase_blocks = []
     for entry in phase_blocks_all_merged:
-        phase_blocks.append(entry[3])
+        phase_blocks.append(entry[2])
     print(phase_blocks)
     print(calculate_n50(phase_blocks))
     print(calculate_ng50(phase_blocks, genome_length))
