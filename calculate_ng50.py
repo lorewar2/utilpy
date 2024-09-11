@@ -1,13 +1,16 @@
+from collections import defaultdict
+
 def main():
+    # Genome length to be used in NG50
     genome_length = 3_200_000_000
     file1 = open('phasstphase_modified.vcf', 'r')
     Lines = file1.readlines()
-    phase_blocks = []
+    phase_blocks_all = []
     count = 0
     current_phase_block = 0
     current_phase_block_length = 0
     current_phase_block_start = 0
-    # Strips the newline character
+    # Read the vcf and get phase block data
     for line in Lines:
         split_array = line.strip().split("\t")
         count += 1
@@ -15,6 +18,7 @@ def main():
             print(count)
         if split_array[0][0] == "c":
             location = int(split_array[1])
+            chromosone = split_array[0]
             haplotype = split_array[9].split(":")[0]
             assert(len(haplotype) == 3)
             ps_available = False
@@ -35,10 +39,20 @@ def main():
                         print(line)
                 else:
                     if current_phase_block_length > 0:
-                        phase_blocks.append(current_phase_block_length)
+                        phase_blocks_all.append((chromosone, location, current_phase_block_length))
                     current_phase_block = this_phase_block
                     current_phase_block_length = 0
                     current_phase_block_start = location
+    # Merge the similar phase blocks
+    merged_dict = defaultdict(int)
+    for entry in phase_blocks_all:
+        key = (entry[0], entry[1])
+        merged_dict[key] += entry[2]
+    phase_blocks_all_merged = [(key[0], key[1], value) for key, value in merged_dict.items()]
+    # Use the merged list to make the phase blocks (just lengths)
+    phase_blocks = []
+    for entry in phase_blocks_all_merged:
+        phase_blocks.append(entry[3])
     print(phase_blocks)
     print(calculate_n50(phase_blocks))
     print(calculate_ng50(phase_blocks, genome_length))
@@ -47,15 +61,6 @@ def main():
 
 
 def calculate_n50(block_lengths):
-    """
-    Calculate N50 from a list of block lengths.
-    
-    Parameters:
-    block_lengths (list): List of integers representing the lengths of blocks (contigs or phased blocks).
-
-    Returns:
-    int: N50 value.
-    """
     # Sort block lengths in descending order
     sorted_blocks = sorted(block_lengths, reverse=True)
     
@@ -74,16 +79,6 @@ def calculate_n50(block_lengths):
 
 
 def calculate_ng50(phased_blocks, genome_length):
-    """
-    Calculate NG50 from a list of phased block lengths.
-    
-    Parameters:
-    phased_blocks (list): List of integers representing the lengths of the phased blocks.
-    genome_length (int): Total length of the genome.
-
-    Returns:
-    int: NG50 value.
-    """
     # Sort the phased blocks by length in descending order
     sorted_blocks = sorted(phased_blocks, reverse=True)
     
