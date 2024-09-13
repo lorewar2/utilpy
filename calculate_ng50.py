@@ -34,8 +34,6 @@ def main():
                 this_phase_block = int(split_array[9].split(":")[PS_pos])
                 if this_phase_block == current_phase_block:
                     current_phase_block_length = location - current_phase_block_start
-                    #if current_phase_block_length > 1000_000:
-                    #    print(location, this_phase_block, "dsd")
                 else:
                     if current_phase_block_length > 0:
                         phase_blocks_all.append((chromosone, current_phase_block, current_phase_block_length))
@@ -52,7 +50,6 @@ def main():
     # Use the merged list to make the phase blocks (just lengths)
     phase_blocks = []
     for entry in phase_blocks_all_merged:
-        print(entry)
         phase_blocks.append(entry[2])
     print(calculate_n50(phase_blocks))
     print(calculate_ng50(phase_blocks, genome_length))
@@ -61,10 +58,8 @@ def main():
 def calculate_n50(block_lengths):
     # Sort block lengths in descending order
     sorted_blocks = sorted(block_lengths, reverse=True)
-    
     # Calculate the total length of all blocks
     total_length = sum(sorted_blocks)
-    
     # Calculate N50, the block length where 50% of the total length is covered
     cumulative_sum = 0
     half_total_length = total_length / 2
@@ -79,17 +74,14 @@ def calculate_n50(block_lengths):
 def calculate_ng50(phased_blocks, genome_length):
     # Sort the phased blocks by length in descending order
     sorted_blocks = sorted(phased_blocks, reverse=True)
-    
     # Calculate the cumulative sum of the block lengths
     cumulative_sum = 0
-    
     # Calculate NG50, which is the block length where 50% of the genome length is covered
     half_genome = genome_length / 2
     for block_length in sorted_blocks:
         cumulative_sum += block_length
         if cumulative_sum >= half_genome:
             return block_length
-    
     return None  # If the NG50 is not found
 
 if __name__ == "__main__":
